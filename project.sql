@@ -141,3 +141,27 @@ insert into UserClient (id, dob) values (LAST_INSERT_ID(), dob);
 commit;
 END //
 DELIMITER ;
+
+DROP procedure if exists searchUser;
+DELIMITER //
+create procedure searchUser(email varchar(100), pass varchar(200))
+BEGIN
+SELECT Uu.name, Staff.id, UserClient.id from (SELECT * FROM User where email=email and user_password=pass) as Uu left outer join Staff on Uu.id=Staff.id left outer join UserClient on Uu.id=UserClient.id;
+END //
+DELIMITER ;
+
+DROP function if exists updateUser;
+DELIMITER //
+create function updateUser(userid int, username varchar(100), pass varchar(200), email varchar(100), dob date, street varchar(200), city varchar(100), pincode varchar(6), type varchar(10))
+RETURNS INT
+MODIFIES SQL DATA
+BEGIN
+declare re int;
+declare temp int default -1;
+select id into temp from Address where street=street and pincode=pincode and city=city;
+
+SELECT id into re FROM attack inner join township on township.tid = attack.location group by attack.location order by count(*) desc limit 1;
+
+return re;
+END //
+DELIMITER ;

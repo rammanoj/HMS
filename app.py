@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist
+from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser
 from datetime import datetime
 
 app = Flask(__name__)
@@ -42,7 +42,6 @@ def login():
         email, password = f.get("email"), f.get("psw")
         check = checkUserExist(email, password)
         if check:
-            print(check)
             session['username'] = check[0]
             session['email'] = email
             session['type'] = check[1]
@@ -54,10 +53,37 @@ def login():
 @app.route("/", methods=['GET'])
 def home():
     if isLoggedIn():
-        print(session.get("username"))
         return render_template("home.html", user=session.get('username'), logged=True)
     else:
         return render_template("home.html", logged=False)
+
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if not isLoggedIn():
+        return render_template("error.html", message="You do not have permission to access the page!")
+    else:
+        if request.method == "GET":
+            return render_template("profile.html", data=getUserDetails(session['email']))
+        else:
+            f, data = request.form, getUserDetails(session['email'])
+            username, password, repass, email, dob, street, city, pincode = f.get("username"), f.get("psw"), f.get("psw-repeat"), f.get("email"), f.get("dob"), f.get("street"), f.get("city"), f.get("pincode")
+            if password != repass:
+                return render_template("profile.html", data=data, message="Passwords does not match!", color="red")
+            if email != data[3] and checkUserEmailExist(email):
+                return render_template("profile.html", data=data, message="Email already registered by another user", color="red")
+            
+            if username != data[1] or password != data[2] or email != session['email'] or street != data[9] or city != data[10] or pincode != data[11] or (dob is None or dob != data[8]):
+                updateUser(data[0], username, password, email, dob, street, city, pincode, session['type'])
+                if email != session['email']:
+                    session['email'] = email
+                if username != session['username']:
+                    session['username'] = username
+
+                return render_template("profile.html", data=getUserDetails(session['email']), message="Profile Successfully Updated", color="green")
+            else:
+                return render_template("profile.html", data=data, message="No changes made to the profile", color="red")
+
 
 @app.route("/logout", methods=['GET'])
 def logout():

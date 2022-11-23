@@ -4,8 +4,11 @@ conn = server_connect()
 cursor = conn.cursor()
 
 def checkUserExist(email, password):
-    cursor.execute("SELECT Uu.name, Staff.id, UserClient.id from (SELECT * FROM User where email=%s and user_password=%s) as Uu left outer join Staff on Uu.id=Staff.id left outer join UserClient on Uu.id=UserClient.id", (email, password))
-    o = cursor.fetchall()
+    cursor.callproc("searchUser", (email, password))
+    o = []
+    for res in cursor.stored_results():
+        o.append(res.fetchall())
+    o = o[0]
     if len(o) > 0:
         if o[0][1] == None:
             return [o[0][0], "Client"]
@@ -39,3 +42,9 @@ def createAddress(street, city, pincode):
     conn.commit()
     return cursor.lastrowid
 
+def getUserDetails(email):
+    cursor.execute("SELECT * from (SELECT * FROM User where email=%s) as U left outer join Staff on U.id=Staff.id left outer join UserClient on U.id=UserClient.id left outer join Address on U.address_id = Address.id", (email,))
+    return cursor.fetchall()[0]
+
+def updateUser(id, username, password, email, dob, street, city, pincode, type):
+    cursor.callproc("updateUser", (id, username, password, email, dob, street, city, pincode, type))

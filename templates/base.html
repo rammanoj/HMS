@@ -10,6 +10,16 @@
 
 </head>
 <body>
+    <div id="navbar">
+        {% if session['email'] %}
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout!</a>
+        {% else %}
+            <a href="/">HMS</a>
+            <a href="/login">Login!</a>
+            <a href="/register">Signup!</a>
+        {% endif %}
+    </div>
     <div id="body">{% block content %}{% endblock %}</div>
     <div id="footer">
       {% block footer %}
