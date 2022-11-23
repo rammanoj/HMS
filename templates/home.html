@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
 <div class="container">
     {% if logged %}
         <h2>Welcome {{ user }}</h2>
+        <a href="/logout">Logout!</a>
     {% else %}
         <h2>Welcome to HMS!</h2>
     {% endif %}
