@@ -129,13 +129,13 @@ INSERT INTO Staff (id, hotel_id) values (4, 1);
 
 DROP procedure if exists createUser;
 DELIMITER //
-create procedure createUser(IN username varchar(100), IN email varchar(100), IN user_pass varchar(200), IN dob date, IN address int)
+create procedure createUser(IN username varchar(100), IN user_email varchar(100), IN user_pass varchar(200), IN dob date, IN address int)
 BEGIN
 start transaction;
 if (user_pass is null) then
-	insert into User(name, email, address_id) values (username, email, address);
+	insert into User(name, email, address_id) values (username, user_email, address);
 else
-	insert into User(name, user_password, email, address_id) values (username, user_pass, email, address);
+	insert into User(name, user_password, email, address_id) values (username, user_pass, user_email, address);
 end if;
 insert into UserClient (id, dob) values (LAST_INSERT_ID(), dob);
 commit;
@@ -144,9 +144,9 @@ DELIMITER ;
 
 DROP procedure if exists searchUser;
 DELIMITER //
-create procedure searchUser(email varchar(100), pass varchar(200))
+create procedure searchUser(user_email varchar(100), pass varchar(200))
 BEGIN
-SELECT Uu.name, Staff.id, UserClient.id from (SELECT * FROM User where email=email and user_password=pass) as Uu left outer join Staff on Uu.id=Staff.id left outer join UserClient on Uu.id=UserClient.id;
+SELECT Uu.name, Staff.id, UserClient.id from (SELECT * FROM User where email=user_email and user_password=pass) as Uu left outer join Staff on Uu.id=Staff.id left outer join UserClient on Uu.id=UserClient.id;
 END //
 DELIMITER ;
 

@@ -76,7 +76,7 @@ def profile():
                 return render_template("profile.html", data=data, message="Email already registered by another user", color="red")
             
             if username != data[1] or password != data[2] or email != session['email'] or street != data[9] or city != data[10] or pincode != data[11] or (dob is None or dob != data[8]):
-                updateUser(data[0], username, password, email, dob, street, city, pincode, session['type'])
+                updateUser(data[0], username, password, email, street, city, pincode, session['type'])
                 if email != session['email']:
                     session['email'] = email
                 if username != session['username']:

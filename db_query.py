@@ -46,7 +46,7 @@ def getUserDetails(email):
     cursor.execute("SELECT * from (SELECT * FROM User where email=%s) as U left outer join Staff on U.id=Staff.id left outer join UserClient on U.id=UserClient.id left outer join Address on U.address_id = Address.id", (email,))
     return cursor.fetchall()[0]
 
-def updateUser(id, username, password, email, dob, street, city, pincode, type):
+def updateUser(id, username, password, email, street, city, pincode, type):
     cursor.execute("SELECT updateUser(%s, %s, %s, %s, %s, %s, %s, %s)", (int(id), username, password, email, street, city, pincode, type))
     cursor.fetchall()
     conn.commit()
