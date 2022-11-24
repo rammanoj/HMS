@@ -152,16 +152,17 @@ DELIMITER ;
 
 DROP function if exists updateUser;
 DELIMITER //
-create function updateUser(userid int, username varchar(100), pass varchar(200), email varchar(100), dob date, street varchar(200), city varchar(100), pincode varchar(6), type varchar(10))
+create function updateUser(userid int, user_name varchar(100), pass varchar(200), user_email varchar(100), st varchar(100), ci varchar(100), pi varchar(6), type varchar(10))
 RETURNS INT
-MODIFIES SQL DATA
-BEGIN
-declare re int;
+DETERMINISTIC MODIFIES SQL DATA
+begin
 declare temp int default -1;
-select id into temp from Address where street=street and pincode=pincode and city=city;
-
-SELECT id into re FROM attack inner join township on township.tid = attack.location group by attack.location order by count(*) desc limit 1;
-
-return re;
+select id into temp from Address where street=st and city=ci and pincode=pi;
+if (temp = -1) then
+	INSERT INTO Address (street, city, pincode) values (st, ci, pi);
+    set temp = LAST_INSERT_ID();
+end if;
+update User set name=user_name, user_password=pass, email=user_email, address_id=temp where id=userid;
+return null;
 END //
 DELIMITER ;

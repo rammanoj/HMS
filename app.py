@@ -70,6 +70,8 @@ def profile():
             username, password, repass, email, dob, street, city, pincode = f.get("username"), f.get("psw"), f.get("psw-repeat"), f.get("email"), f.get("dob"), f.get("street"), f.get("city"), f.get("pincode")
             if password != repass:
                 return render_template("profile.html", data=data, message="Passwords does not match!", color="red")
+            if len(password) < 8:
+                return render_template("profile.html", data=data, message="Passwords length cannot be less than 8!", color="red")
             if email != data[3] and checkUserEmailExist(email):
                 return render_template("profile.html", data=data, message="Email already registered by another user", color="red")
             

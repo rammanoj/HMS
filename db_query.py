@@ -47,4 +47,7 @@ def getUserDetails(email):
     return cursor.fetchall()[0]
 
 def updateUser(id, username, password, email, dob, street, city, pincode, type):
-    cursor.callproc("updateUser", (id, username, password, email, dob, street, city, pincode, type))
+    cursor.execute("SELECT updateUser(%s, %s, %s, %s, %s, %s, %s, %s)", (int(id), username, password, email, street, city, pincode, type))
+    cursor.fetchall()
+    conn.commit()
+

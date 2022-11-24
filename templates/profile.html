@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+
+<form action="/profile" method="post">
+    <div style="color:{{ color }}">{{ message }}</div>
+    <div class="container">
+        <h1>View / Update Profile</h1>
+        <hr>
+        <label for="username"><b>Username</b></label>
+        <input type="text" placeholder="Enter Username" name="username" id="username" value="{{ data[1] }}" required>
+
+        <label for="email"><b>Email</b></label>
+        <input type="text" placeholder="Enter Email" name="email" id="email" value="{{ data[3] }}" required>
+    
+        <label for="psw"><b>Password</b></label>
+        <input type="password" placeholder="Enter Password" name="psw" id="psw" value="{{ data[2] }}" required>
+    
+        <label for="psw-repeat"><b>Repeat Password</b></label>
+        <input type="password" placeholder="Repeat Password" name="psw-repeat" id="psw-repeat" value="{{ data[2] }}" required>
+        <hr>
+
+        {% if session['type'] == "Client" %}
+            <label for="dob"><b>Date of Birth</b></label>
+            <input type="date" placeholder="Enter Date of Birth" name="dob" id="dob" value="{{ data[8] }}" disabled>
+            <hr>
+        {% endif %}
+
+        <label for="street"><b>Street</b></label>
+        <input type="text" placeholder="Enter Street" name="street" id="street" value="{{ data[10] }}" required>
+        <hr>
+
+        <label for="city"><b>City</b></label>
+        <input type="text" placeholder="Enter City" name="city" id="city" value="{{ data[11] }}" required>
+        <hr>
+
+        <label for="pincode"><b>Pincode</b></label>
+        <input type="text" placeholder="Enter PinCode" name="pincode" id="pincode" value="{{ data[12] }}" required>
+        <hr>
+    
+        <button type="submit" class="registerbtn">Update</button>
+    </div>
+    </form>
+{% endblock %}
