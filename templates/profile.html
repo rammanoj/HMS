@@ -2,7 +2,13 @@
 {% block content %}
 
 <form action="/profile" method="post">
-    <div style="color:{{ color }}">{{ message }}</div>
+    {% if message %}
+        {% if color == "green" %}
+            <div class="alert alert-success" style="color:{{ color }}">{{ message }}</div>
+        {% else %}
+            <div class="alert alert-danger" style="color:{{ color }}">{{ message }}</div>
+        {% endif %}
+    {% endif %}
     <div class="container">
         <h1>View / Update Profile</h1>
         <hr>
