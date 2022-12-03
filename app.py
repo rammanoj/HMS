@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser
+from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings
 from datetime import datetime
 
 app = Flask(__name__)
@@ -11,6 +11,8 @@ def isLoggedIn():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if isLoggedIn():
+        return redirect(url_for('home'))
     if request.method == "GET":
         return render_template("register.html", username="", email="", dob="", city="", pincode="", street="")
     else:
@@ -35,6 +37,8 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    if isLoggedIn():
+        return redirect(url_for('home'))
     if request.method == "GET":
         return render_template("login.html")
     else:
@@ -49,13 +53,32 @@ def login():
         else:
             return render_template("login.html", message="User credentials mismatch!", color="red")
 
-
+ 
 @app.route("/", methods=['GET'])
 def home():
+    sess = None
     if isLoggedIn():
-        return render_template("home.html", user=session.get('username'), logged=True)
-    else:
-        return render_template("home.html", logged=False)
+        sess=session.get('username')
+
+    start_date = request.args.get("start_date", None)
+    end_date = request.args.get("end_date", None)
+
+    if (start_date is None or end_date is None) and not (start_date is None and end_date is None):
+        return render_template("home.html", user=sess, message="Please select both start and end date")
+    elif start_date is not None and end_date is not None:
+        start_date, end_date = datetime.strptime(start_date, "%Y-%m-%d"), datetime.strptime(end_date, "%Y-%m-%d")
+        if datetime.now() >= start_date or datetime.now() >= end_date:
+            return render_template("home.html", user=sess, message="Booking cannot be in the past!", start_date=start_date.strftime("%Y-%m-%d"), end_date=end_date.strftime("%Y-%m-%d"))
+        if start_date >= end_date:
+            return render_template("home.html", user=sess, message="End date must be greater than Start Date", start_date=start_date.strftime("%Y-%m-%d"), end_date=end_date.strftime("%Y-%m-%d"))
+        rooms, bookings, tmp = getRooms(), getBookings(), {}
+        for i in bookings:
+            st, en = datetime.strptime(i[1], "%Y-%m-%d"), datetime.strptime(i[2], "%Y-%m-%d")
+            if (st < start_date and en < end_date) or (st > end_date and en > end_date):
+                tmp[i[6]] = True
+        return render_template("home.html", user=sess, rooms=[i for i in rooms if i[0] not in tmp], start_date=start_date.strftime("%Y-%m-%d"), end_date=end_date.strftime("%Y-%m-%d"))
+
+    return render_template("home.html", user=sess)
 
 
 @app.route('/profile', methods=['GET', 'POST'])

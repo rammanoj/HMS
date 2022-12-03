@@ -53,6 +53,7 @@ create table Booking (
     checkin_date Date,
     checkout_date Date,
     no_of_days Date,
+    cancelled boolean,
     PRIMARY KEY (id)
 );
 
@@ -124,12 +125,25 @@ INSERT INTO Staff (id, hotel_id) values (2, 1);
 INSERT INTO Staff (id, hotel_id) values (3, 1);
 INSERT INTO Staff (id, hotel_id) values (4, 1);
 
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (101, 1, 4, 300, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (102, 1, 2, 150, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (103, 1, 5, 400, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (201, 2, 6, 500, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (202, 2, 2, 150, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (203, 2, 3, 250, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (301, 3, 2, 125, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (302, 3, 3, 300, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (303, 3, 3, 275, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (401, 4, 1, 95, 1);
+
+
+
 
 -- End of DML for Staff & Hotel
 
 DROP procedure if exists createUser;
 DELIMITER //
-create procedure createUser(IN username varchar(100), IN user_email varchar(100), IN user_pass varchar(200), IN dob date, IN address int)
+create procedure createUser(IN username varchar(100), IN user_email varchar(100), IN user_pass varchar(200), IN ddob date, IN address int)
 BEGIN
 start transaction;
 if (user_pass is null) then
@@ -137,7 +151,7 @@ if (user_pass is null) then
 else
 	insert into User(name, user_password, email, address_id) values (username, user_pass, user_email, address);
 end if;
-insert into UserClient (id, dob) values (LAST_INSERT_ID(), dob);
+insert into UserClient (id, dob) values (LAST_INSERT_ID(), ddob);
 commit;
 END //
 DELIMITER ;

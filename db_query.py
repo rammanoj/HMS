@@ -51,3 +51,10 @@ def updateUser(id, username, password, email, street, city, pincode, type):
     cursor.fetchall()
     conn.commit()
 
+def getRooms():
+    cursor.execute("SELECT * from Rooms")
+    return cursor.fetchall()
+
+def getBookings():
+    cursor.execute("select * from Booking inner join BookRooms on Booking.id = BookRooms.booking_id")
+    return cursor.fetchall()
