@@ -49,7 +49,8 @@
       {% endif %}
       <br>
       <h4>Please Select Rooms to continue...</h4>
-      {% if message %}
+      <div id="messages">
+        {% if message %}
         <br />
         {% if color == "green" %}
             <div class="alert alert-success" style="color:{{ color }}">{{ message }}</div>
@@ -57,6 +58,8 @@
             <div class="alert alert-danger" style="color:{{ color }}">{{ message }}</div>
         {% endif %}
       {% endif %}
+      </div>
+      <span style="display: none;" id="usertype">{{ session['type'] }}</span>
       <form action="/" method="get">
         <div class="row">
           <div class="col-5">
@@ -80,14 +83,21 @@
         </div>
       {% else %}
         <div style="margin-top: 3em;">
-          <h5>Available Rooms</h5>
+          <div class="row">
+            <div class="col">
+              <h5>Available Rooms</h5>
+            </div>
+            <div class="col">
+                <button class="btn btn-warning" onclick="bookRoom(event)" style="float: right;color: white;">Book Rooms <span id="roomcount"></span></button>
+            </div>
+          </div>
           <br>
-          <table class="table table-striped table-hover">
+          <table class="table table-striped table-hover" id="roomstable">
             <thead>
               <tr>
                 <th>Room No.</th>
                 <th>Capacity</th>
-                <th>Cost</th>
+                <th>Cost (/ day)</th>
                 {% if user %}
                   <th>Book</th>
                 {% endif %}
@@ -96,11 +106,11 @@
             <tbody>
               {% for room in rooms %}
                 <tr>
-                  <td>{{ room[1] }}</td>
-                  <td>{{ room[3] }}</td>
-                  <td>${{ room[4] }}</td>
+                  <td id="roomNo-{{ room[1] }}">{{ room[1] }}</td>
+                  <td id="roomCap-{{ room[1] }}">{{ room[3] }}</td>
+                  <td id="roomCost-{{ room[1] }}">${{ room[4] }}</td>
                   {% if user %}
-                    <td><button class="btn btn-primary" style="padding-top: 1px; padding-bottom: 1px;">+</button></td>
+                    <td><button class="btn room-add btn-primary" id="btn-{{ room[1] }}" onclick="showRemove(event)" style="padding-top: 1px; padding-bottom: 1px;">+</button></td>
                   {% endif %}
                 </tr>
               {% endfor %}
@@ -109,5 +119,138 @@
         </div>
       {% endif %}
     </div>
-</div>
+
+    <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="paymentModalLabel">Book Rooms</h5>
+            <button type="button" class="close" style="background-color: white;border: 0px;" onclick="hideModal(event)" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="container">
+              <label class = "form-label" ><b>Rooms Selected:</b></label>
+              <table class="table table-bordered">
+                <thead>
+                  <th>Room No.</th>
+                  <th>Capacity</th>
+                </thead>
+                <tbody id="modaltable"></tbody>
+              </table>
+              <label class = "form-label" ><b>Total Cost:</b></label>
+              <input class ="form-control" type="text" name="cost" id="cost" value="" disabled />
+              <div id="bookinguserdata">
+                <label class = "form-label" ><b>Booking User:</b></label>
+                <input class ="form-control" type="text" name="username" id="username" value="" required />
+                <label class = "form-label" ><b>Booking User National Id:</b></label>
+                <input class ="form-control" type="text" name="userid" id="userid" value="" required /> 
+              </div>
+              <label class = "form-label" for="payment"><b>Payment Method:</b></label>
+              <select class="form-select" aria-label="Default select example" name="payment" id="payment">
+                <option selected value="CREDIT">Credit Card</option>
+                <option value="DEBIT">Debit Card</option>
+                <option value="UPI">UPI</option>
+                <option value="MOBILE WALLET">Mobile Wallets</option>
+                <option value="CASH">Cash</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="paybook">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+        var tCount = 0;
+        let modal, _ = document.getElementById.bind(document);
+        function showRemove(event) {
+          console.log(event.target.id);
+          if(document.getElementById(event.target.id).innerText == "+") {
+            document.getElementById(event.target.id).classList.remove("btn-primary");
+            document.getElementById(event.target.id).classList.remove("room-add");
+            document.getElementById(event.target.id).classList.add("btn-danger");
+            document.getElementById(event.target.id).classList.add("room-rem");
+            document.getElementById(event.target.id).innerText = "-";
+            tCount += 1;
+
+          } else {
+            document.getElementById(event.target.id).classList.remove("btn-danger");
+            document.getElementById(event.target.id).classList.remove("room-rem");
+            document.getElementById(event.target.id).classList.add("btn-primary");
+            document.getElementById(event.target.id).classList.add("room-add");
+            document.getElementById(event.target.id).innerText = "+";
+            tCount -= 1;
+          }
+          if(tCount == 0) {
+            document.getElementById("roomcount").innerHTML = "";
+          } else {
+            document.getElementById("roomcount").innerHTML = "( " + tCount + " )";
+          }
+        }
+
+        function bookRoom(event) {
+          if(tCount == 0) {
+            alert("No rooms added to book!");
+          } else {
+              showClientData();
+              if(document.getElementById("usertype").innerHTML.toLowerCase() != "client") {
+                document.getElementById("bookinguserdata").style.display = "block";
+              } else {
+                document.getElementById("bookinguserdata").style.display = "none";
+              }
+              modal = new bootstrap.Modal(document.getElementById('paymentModal'), {});
+              modal.show();
+          }
+        }
+
+        function showClientData() {
+          let removes = document.getElementsByClassName("room-rem");
+          let content = "", cost = 0;
+          for(let remove of removes) {
+            let rv = remove.id.split("-")[1];
+            content += "<tr><td>" + document.getElementById("roomNo-" + rv).innerHTML + "</td><td>";
+            content += document.getElementById("roomCap-" + rv).innerHTML + "</td></tr>";
+            cost += datediff(document.getElementById("start_date").valueAsDate, document.getElementById("end_date").valueAsDate) * parseInt(document.getElementById("roomCost-" + rv).innerHTML.replace("$", ""));
+          }
+          document.getElementById("modaltable").innerHTML = content;
+          document.getElementById("cost").value = "$" + cost;
+        }
+
+        function hideModal(event) {
+          modal.hide();
+        }
+
+        function datediff(first, second) {   
+            return Math.round((second - first) / (1000 * 60 * 60 * 24));
+        }
+
+        _("paybook").addEventListener("click", function() {
+            let data = {
+              "room": Array.from(_("modaltable").childNodes).map(x => x.innerText.split("\t")[0]),
+              "cost": _("cost").value,
+              "payment_type": _("payment").value,
+              "start_date": _("start_date").value,
+              "end_date": _("end_date").value
+            };
+            console.log(data)
+            fetch("/book", {
+              body: JSON.stringify(data),
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              }
+            }).then( resp => resp.json())
+            .then(data => {
+              hideModal();
+              if(data.error == 0) {
+                _("messages").innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+              } else {
+                _("messages").innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+              }
+            })
+        });
+    </script>
 {% endblock %}

@@ -52,7 +52,7 @@ create table Booking (
 	id int not null auto_increment,
     checkin_date Date,
     checkout_date Date,
-    no_of_days Date,
+    no_of_days int,
     cancelled boolean,
     PRIMARY KEY (id)
 );
@@ -74,6 +74,8 @@ create table OnlineBooking (
 
 create table OfflineBooking (
 	ofid int not null,
+    ofuser varchar(100) not null,
+    ofuserid varchar(100) not null,
     primary key (ofid),
     foreign key (ofid) references Booking(id) on update cascade
 );
@@ -180,3 +182,22 @@ update User set name=user_name, user_password=pass, email=user_email, address_id
 return null;
 END //
 DELIMITER ;
+
+DROP function if exists bookRoom;
+DELIMITER //
+create function bookRoom(checkin_d date, checkout_d date, nof_days int, usermail varchar(100), amm float, pay_method varchar(30))
+RETURNS INT
+DETERMINISTIC MODIFIES SQL DATA
+begin
+declare temp int;
+declare userid int;
+select id into userid from User where email=usermail;
+INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, NULL);
+set temp = LAST_INSERT_ID();
+INSERT INTO OnlineBooking (oid, user_id) values (temp, userid);
+INSERT INTO payment (amount, payment_method, booking_id) values (amm, pay_method, temp);
+return temp;
+END //
+DELIMITER ; 
+
+

@@ -27,7 +27,6 @@ def createUser(username, password, email, dob, addressId):
     cursor.callproc("createUser", [username, email, password, dob, addressId])
     conn.commit()
 
-
 def searchAddress(street, city, pincode):
     cursor.execute("SELECT * from Address where street=%s and city=%s and pincode=%s", (street, city, pincode))
     o = cursor.fetchall()
@@ -35,7 +34,6 @@ def searchAddress(street, city, pincode):
         return o[0][0]
     else:
         return -1
-
 
 def createAddress(street, city, pincode):
     cursor.execute("INSERT INTO Address (street, city, pincode) values (%s, %s, %s)", (street, city, pincode))
@@ -58,3 +56,17 @@ def getRooms():
 def getBookings():
     cursor.execute("select * from Booking inner join BookRooms on Booking.id = BookRooms.booking_id")
     return cursor.fetchall()
+
+def bookOnlineRoom(checkin, checkout, no_of_days, email, amnt, payment):
+    cursor.execute("SELECT bookRoom(%s, %s, %s, %s, %s, %s)", (checkin, checkout, int(no_of_days), email, float(amnt), payment))
+    o = cursor.fetchall()
+    conn.commit()
+    return o
+
+def getRoomIDs(roomid):
+    cursor.execute("SELECT room_id from Rooms where room_no=%s", (int(roomid),))
+    return cursor.fetchall()
+
+def bookRoom(id, bookingid):
+    cursor.execute("INSERT INTO BookRooms (booking_id, room_id) values (%s, %s)", (int(bookingid), int(id)))
+    conn.commit()

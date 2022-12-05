@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings
+from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings, bookOnlineRoom, bookRoom, getRoomIDs
 from datetime import datetime
 
 app = Flask(__name__)
@@ -58,7 +58,7 @@ def login():
 def home():
     sess = None
     if isLoggedIn():
-        sess=session.get('username')
+        sess=session
 
     start_date = request.args.get("start_date", None)
     end_date = request.args.get("end_date", None)
@@ -73,8 +73,9 @@ def home():
             return render_template("home.html", user=sess, message="End date must be greater than Start Date", start_date=start_date.strftime("%Y-%m-%d"), end_date=end_date.strftime("%Y-%m-%d"))
         rooms, bookings, tmp = getRooms(), getBookings(), {}
         for i in bookings:
-            st, en = datetime.strptime(i[1], "%Y-%m-%d"), datetime.strptime(i[2], "%Y-%m-%d")
-            if (st < start_date and en < end_date) or (st > end_date and en > end_date):
+            if i[2] < start_date.date() or end_date.date() < i[1]:
+                pass
+            else:
                 tmp[i[6]] = True
         return render_template("home.html", user=sess, rooms=[i for i in rooms if i[0] not in tmp], start_date=start_date.strftime("%Y-%m-%d"), end_date=end_date.strftime("%Y-%m-%d"))
 
@@ -119,6 +120,32 @@ def logout():
         return render_template("login.html", message="You need to first login to logout!", color="red")
 
 
+def check_available(start, end, rooms):
+    bookings = getBookings()
+    rooms_len = len(rooms)
+    print(rooms)
+    for i in bookings:
+        if not (i[2] < start.date() or end.date() < i[1]):
+            if i[6] in rooms:
+                rooms.remove(i[6])
+    return rooms_len == len(rooms)
+
+@app.route("/book", methods=['POST'])
+def bookRoomView():
+    if not isLoggedIn():
+        return render_template("error.html", message="You do not have permission to perform the action!")
+
+    # book the rooms
+    d = request.json
+    rooms = [getRoomIDs(i)[0][0] for i in d['room']]
+    if not check_available(datetime.strptime(d['start_date'], "%Y-%m-%d"), datetime.strptime(d['end_date'], "%Y-%m-%d"), rooms):
+        return {"message": "Rooms are not available on selected dates!", "error": 1}
+    no_days = (datetime.strptime(d['end_date'], "%Y-%m-%d") - datetime.strptime(d['start_date'], "%Y-%m-%d")).days
+    id = bookOnlineRoom(d['start_date'], d['end_date'], no_days, session.get("email"), d.get("cost").replace("$", ""), d['payment_type'])
+    for i in rooms:
+        bookRoom(i, id[0][0])
+    return {"message": "Successfully Booked Rooms", "error": 0}
+    
 
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
