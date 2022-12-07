@@ -70,3 +70,19 @@ def getRoomIDs(roomid):
 def bookRoom(id, bookingid):
     cursor.execute("INSERT INTO BookRooms (booking_id, room_id) values (%s, %s)", (int(bookingid), int(id)))
     conn.commit()
+
+def getBookingsForUser(email):
+    print(email)
+    cursor.callproc("searchUserBookings",[email])
+    o = []
+    for res in cursor.stored_results():
+        return res.fetchall()
+
+def deleteRoom(room_id):
+    cursor.execute("DELETE FROM BookRooms WHERE room_id=%s",(int(room_id),))
+    if(cursor.rowcount < 1):
+        return False
+    return True
+    
+
+

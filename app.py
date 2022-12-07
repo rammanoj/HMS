@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings, bookOnlineRoom, bookRoom, getRoomIDs
+from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings, bookOnlineRoom, bookRoom, getRoomIDs, getBookingsForUser, deleteRoom
 from datetime import datetime
 
 app = Flask(__name__)
@@ -8,6 +8,14 @@ app.secret_key = 'test_secret_key'
 
 def isLoggedIn():
     return "email" in session and session.get("email") is not None
+
+
+def date(d):
+     d =  datetime.strptime(d,"%y-%m-%d %H:%M")
+     d.strftime("%d-%m-%y %H:%M")
+     return d
+
+app.add_template_filter(date)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -145,6 +153,64 @@ def bookRoomView():
     for i in rooms:
         bookRoom(i, id[0][0])
     return {"message": "Successfully Booked Rooms", "error": 0}
+
+@app.route('/history', methods=['GET', 'POST'])
+def history():
+    if not isLoggedIn():
+        return render_template("error.html", message="You do not have permission to access the page!")
+    else:
+        if request.method == "GET":
+            bookings = getBookingsForUser(session['email'])
+            present = []
+            future = []
+            past = []
+            for booking in bookings:
+                today = datetime.today().strftime("%Y-%m-%d")
+                temp = []
+                if booking[2].strftime("%Y-%m-%d") < today:
+                    for _ in booking:
+                        temp.append(_)
+                    past.append(temp)
+                elif booking[1].strftime("%Y-%m-%d") <= today and today <= booking[2].strftime("%Y-%m-%d"):
+                    for _ in booking:
+                        temp.append(_)
+                    present.append(temp)
+                else:
+                    for _ in booking:
+                        temp.append(_)
+                    future.append(temp)
+                    print(future)
+
+
+            return render_template("history.html", past = past, future = future, present = present)
+        else:
+            f = request.form
+            room_id = f.get("room_id")
+            print("room_id")
+            print(room_id)
+            if not deleteRoom(room_id):
+                return render_template("history.html",  message="Room Booking could not be cancelled!",color="red",past = past, future = future, present = present)
+            bookings = getBookingsForUser(session['email'])
+            present = []
+            future = []
+            past = []
+            for booking in bookings:
+                today = datetime.today().strftime("%Y-%m-%d")
+                temp = []
+                if booking[2].strftime("%Y-%m-%d") < today:
+                    for _ in booking:
+                        temp.append(_)
+                    past.append(temp)
+                elif booking[1].strftime("%Y-%m-%d") <= today and today <= booking[2].strftime("%Y-%m-%d"):
+                    for _ in booking:
+                        temp.append(_)
+                    present.append(temp)
+                else:
+                    for _ in booking:
+                        temp.append(_)
+                    future.append(temp)
+                    print(future)
+            return render_template("history.html",  message="Room Booking successfully cancelled!",color="green",past = past, future = future, present = present)
     
 
 if __name__ == '__main__':

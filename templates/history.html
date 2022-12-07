@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div class="container">
+    	<h1>Your Bookings</h1>
+        <br>
+        <br>
+        {% if message %}
+            <br />
+            {% if color == "green" %}
+                <div class="alert alert-success" style="color:{{ color }}">{{ message }}</div>
+            {% else %}
+                <div class="alert alert-danger" style="color:{{ color }}">{{ message }}</div>
+            {% endif %}
+        {% endif %}
+        <div class="row">
+        	  <ul class="nav nav-tabs" id="myTab" role="tablist">
+			  <li class="nav-item" role="presentation">
+			    <button class="nav-link active" id="present-tab" data-bs-toggle="tab" data-bs-target="#present" type="button" role="tab" aria-controls="present" aria-selected="true">Present</button>
+			  </li>
+			  <li class="nav-item" role="presentation">
+			    <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab" aria-controls="past" aria-selected="false">Past</button>
+			  </li>
+			  <li class="nav-item" role="presentation">
+			    <button class="nav-link" id="future-tab" data-bs-toggle="tab" data-bs-target="#future" type="button" role="tab" aria-controls="future" aria-selected="false">Up Coming</button>
+			  </li>
+			</ul>
+			<div class="tab-content" id="myTabContent">
+			  <div class="tab-pane fade show active" id="present" role="tabpanel" aria-labelledby="present-tab">
+				  {% for booking in present %}
+				  	<br>
+				  <div class = "card" style="width: 18rem;">
+				  	<div class="card-body">
+					    <h5 class="card-title">{{loop.index}}</h5>
+					    <p class="card-text">Start Date: {{booking[1]}}</p>
+					    <p class="card-text">End Date: {{booking[2]}}</p>
+					    <p class="card-text">Number of days: {{booking[3]}}</p>
+					    <p class="card-text">Room No.: {{booking[8]}}</p>
+					    <input type = "hidden" value = "{{present[loop.index - 1][6]}}" id = "name" >
+					    <input type = "hidden" value = "{{present[loop.index - 1][8]}}" id = "number" >
+					    <input type = "hidden" value = "{{present[loop.index - 1][9]}}" id = "f" >
+					    <input type = "hidden" value = "{{present[loop.index - 1][12]}}" id = "c" >
+					    <input type = "hidden" value = "{{present[loop.index - 1][11]}}" id = "amt" >
+					    <input type = "hidden" value = "{{present[loop.index - 1][12]}}" id = "pay_amt" >
+					    <input type = "hidden" value = "{{present[loop.index - 1][1]}}" id = "s_date" >
+					    <input type = "hidden" value = "{{present[loop.index - 1][2]}}" id = "e_date" >
+					    <input type = "hidden" value = "{{present[loop.index - 1][3]}}" id = "d" >
+					    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#change_booking" id = "booking_btn">View</a>
+					    <div class="modal" tabindex="-1" id = "change_booking">
+					  <div class="modal-dialog">
+					    <div class="modal-content">
+					      <div class="modal-header">
+					        <h5 class="modal-title"></h5>
+					        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					      </div>
+					      <form action="/history" method="post">
+						      <div class="modal-body">
+						        	<div class="col" id = " content">
+						        	<label for="date"><b>Hotel Name</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter hotel nme" name="hotel_name" id="hotel_name"  readonly>
+
+					                <label for="date"><b>Room No.</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter room number" name="room_no" id="room_no"  readonly>
+
+					                <label for="date"><b>Floor</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter floor no." name="floor" id="floor" readonly>
+
+					                <label for="date"><b>Floor</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter floor no." name="floor" id="floor"  readonly>
+
+					                <label for="date"><b>Capacity</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter capacity" name="capacity" id="capacity" readonly>
+
+					                <label for="date"><b>Amount Paid</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter amount paid" name="amount" id="amount" readonly>
+
+					                <label for="date"><b>Payment method</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter payment method" name="payment_method" id="payment_method" readonly>
+
+					                <label for="date"><b>Start Date</b></label>
+					                <input class ="form-control" type="date" placeholder="Enter start date" name="start_date" id="start_date" required>
+					        
+					                <label for="date"><b>End Date</b></label>
+					                <input class ="form-control" type="date" placeholder="Enter end date" name="end_date" id="end_date" required>
+					            
+					                <label for="days"><b>Number of days</b></label>
+					                <input class ="form-control" type="number" placeholder="Enter no of days" name="days" id="days" required>   
+					            	</div>
+						      </div>
+						      <div class = "col-4">
+						        <button type="submit" class="btn btn-danger">Cancel Room</button><input class ="form-control" type = "hidden" name = "room_id" id = "room_id" value = "{{booking[7]}}" >
+						  	  </div>
+						  	  <br>
+						      <div class="modal-footer">
+						        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						      </div>
+					      </form>
+					    </div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				  {% endfor %}
+			  	</div>
+			  <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+			  {% for booking in past %}
+			  	<br>
+				  <div class = "card" style="width: 18rem;">
+				  	<div class="card-body">
+					    <h5 class="card-title">{{loop.index}}</h5>
+					    <p class="card-text">Start Date: {{booking[1]}}</p>
+					    <p class="card-text">End Date: {{booking[2]}}</p>
+					    <p class="card-text">Number of days: {{booking[3]}}</p>
+					    <p class="card-text">Room No.: {{booking[8]}}</p>
+					    <input type = "hidden" value = "{{booking[6]}}" id = "name" >
+					    <input type = "hidden" value = "{{booking[8]}}" id = "number" >
+					    <input type = "hidden" value = "{{booking[9]}}" id = "f" >
+					    <input type = "hidden" value = "{{booking[12]}}" id = "c" >
+					    <input type = "hidden" value = "{{booking[11]}}" id = "amt" >
+					    <input type = "hidden" value = "{{booking[12]}}" id = "pay_amt" >
+					    <input type = "hidden" value = "{{booking[1]}}" id = "s_date" >
+					    <input type = "hidden" value = "{{booking[2]}}" id = "e_date" >
+					    <input type = "hidden" value = "{{booking[3]}}" id = "d" >
+					    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#change_booking" id = "booking_btn">View</a>
+					    <div class="modal" tabindex="-1" id = "change_booking">
+					  <div class="modal-dialog">
+					    <div class="modal-content">
+					      <div class="modal-header">
+					        <h5 class="modal-title"></h5>
+					        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					      </div>
+					      <form action="/history" method="post">
+						      <div class="modal-body">
+						        	<div class="col" id = " content">
+						        	<label for="date"><b>Hotel Name</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter hotel nme" name="hotel_name" id="hotel_name"  readonly>
+
+					                <label for="date"><b>Room No.</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter room number" name="room_no" id="room_no"  readonly>
+
+					                <label for="date"><b>Floor</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter floor no." name="floor" id="floor" readonly>
+
+					                <label for="date"><b>Floor</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter floor no." name="floor" id="floor"  readonly>
+
+					                <label for="date"><b>Capacity</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter capacity" name="capacity" id="capacity" readonly>
+
+					                <label for="date"><b>Amount Paid</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter amount paid" name="amount" id="amount" readonly>
+
+					                <label for="date"><b>Payment method</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter payment method" name="payment_method" id="payment_method" readonly>
+
+					                <label for="date"><b>Start Date</b></label>
+					                <input class ="form-control" type="date" placeholder="Enter start date" name="start_date" id="start_date" required>
+					        
+					                <label for="date"><b>End Date</b></label>
+					                <input class ="form-control" type="date" placeholder="Enter end date" name="end_date" id="end_date" required>
+					            
+					                <label for="days"><b>Number of days</b></label>
+					                <input class ="form-control" type="number" placeholder="Enter no of days" name="days" id="days" required>   
+					            	</div>
+						      </div>
+						      <div class = "col-4">
+						        <button type="submit" class="btn btn-danger">Cancel Room</button><input class ="form-control" type = "hidden" name = "room_id" id = "room_id" value = "{{booking[7]}}" >
+						  	  </div>
+						  	  <br>
+						      <div class="modal-footer">
+						        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						      </div>
+					      </form>
+					    </div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			  {% endfor %}
+			  </div>
+			  <div class="tab-pane fade" id="future" role="tabpanel" aria-labelledby="future-tab">
+			  {% for booking in future %}
+			  	<br>
+				  <div class = "card" style="width: 18rem;">
+				  	<div class="card-body">
+					    <h5 class="card-title">{{loop.index}}</h5>
+					    <p class="card-text">Start Date: {{booking[1]}}</p>
+					    <p class="card-text">End Date: {{booking[2]}}</p>
+					    <p class="card-text">Number of days: {{booking[3]}}</p>
+					    <p class="card-text">Room No.: {{booking[8]}}</p>
+					    <input type = "hidden" value = "{{booking[6]}}" id = "name" >
+					    <input type = "hidden" value = "{{booking[8]}}" id = "number" >
+					    <input type = "hidden" value = "{{booking[9]}}" id = "f" >
+					    <input type = "hidden" value = "{{booking[12]}}" id = "c" >
+					    <input type = "hidden" value = "{{booking[11]}}" id = "amt" >
+					    <input type = "hidden" value = "{{booking[12]}}" id = "pay_amt" >
+					    <input type = "hidden" value = "{{booking[1]}}" id = "s_date" >
+					    <input type = "hidden" value = "{{booking[2]}}" id = "e_date" >
+					    <input type = "hidden" value = "{{booking[3]}}" id = "d" >
+					    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#change_booking" id = "booking_btn">View</a>
+					    <div class="modal" tabindex="-1" id = "change_booking">
+					  <div class="modal-dialog">
+					    <div class="modal-content">
+					      <div class="modal-header">
+					        <h5 class="modal-title"></h5>
+					        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					      </div>
+					      <form action="/history" method="post">
+						      <div class="modal-body">
+						        	<div class="col" id = " content">
+						        	<label for="date"><b>Hotel Name</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter hotel nme" name="hotel_name" id="hotel_name"  readonly>
+
+					                <label for="date"><b>Room No.</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter room number" name="room_no" id="room_no"  readonly>
+
+					                <label for="date"><b>Floor</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter floor no." name="floor" id="floor" readonly>
+
+					                <label for="date"><b>Floor</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter floor no." name="floor" id="floor"  readonly>
+
+					                <label for="date"><b>Capacity</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter capacity" name="capacity" id="capacity" readonly>
+
+					                <label for="date"><b>Amount Paid</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter amount paid" name="amount" id="amount" readonly>
+
+					                <label for="date"><b>Payment method</b></label>
+					                <input class ="form-control" type="text" placeholder="Enter payment method" name="payment_method" id="payment_method" readonly>
+
+					                <label for="date"><b>Start Date</b></label>
+					                <input class ="form-control" type="date" placeholder="Enter start date" name="start_date" id="start_date" required>
+					        
+					                <label for="date"><b>End Date</b></label>
+					                <input class ="form-control" type="date" placeholder="Enter end date" name="end_date" id="end_date" required>
+					            
+					                <label for="days"><b>Number of days</b></label>
+					                <input class ="form-control" type="number" placeholder="Enter no of days" name="days" id="days" required>   
+					            	</div>
+						      </div>
+						      <div class = "col-4">
+						        <button type="submit" class="btn btn-danger">Cancel Room</button><input class ="form-control" type = "hidden" name = "room_id" id = "room_id" value = "{{booking[7]}}" >
+						  	  </div>
+						  	  <br>
+						      <div class="modal-footer">
+						        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						      </div>
+					      </form>
+					    </div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			  {% endfor %}
+			</div>
+        </div>
+    </div>
+    <!-- <div class="modal" tabindex="-1" id = "change_booking">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title"></h5>
+	        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	      </div>
+	      <form action="/history" method="post">
+		      <div class="modal-body">
+		        	<div class="col">
+	                <label for="date"><b>Start Date</b></label>
+	                <input class ="form-control" type="date" placeholder="Enter start date" name="start_date" id="start_date" value="" required>
+	        
+	                <label for="date"><b>End Date</b></label>
+	                <input class ="form-control" type="date" placeholder="Enter end date" name="end_date" id="end_date" value="" required>
+	            
+	                <label for="days"><b>Number of days</b></label>
+	                <input class ="form-control" type="number" placeholder="Enter no of days" name="days" id="days" value="" required>   
+	            	</div>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+		        <button type="submit" class="btn btn-primary">Save changes</button>
+		      </div>
+	      </form>
+	    </div>
+	  </div>
+	</div> -->
+</div>
+
+    <script type="text/javascript">
+    	btn = document.getElementById("booking_btn");
+    	btn.addEventListener("click", function() {  
+
+    		console.log(document.getElementById("name").value);
+            
+ 			document.getElementById("hotel_name").value = document.getElementById("name").value; 
+ 			document.getElementById("room_no").value = document.getElementById("number").value;  
+ 			document.getElementById("floor").value = document.getElementById("f").value;  
+ 			document.getElementById("capacity").value = document.getElementById("c").value; 
+ 			document.getElementById("amount").value = document.getElementById("amt").value; 
+ 			document.getElementById("payment_method").value = document.getElementById("pay_amt").value;  
+            document.getElementById("start_date").value = document.getElementById("s_date").value; 
+            document.getElementById("end_date").value = document.getElementById("e_date").value;  
+            document.getElementById("days").value = document.getElementById("d").value; 
+        })
+    </script>
+
+{% endblock %}

@@ -200,4 +200,28 @@ return temp;
 END //
 DELIMITER ; 
 
+DROP procedure if exists searchUserBookings;
+DELIMITER //
+create procedure searchUserBookings(user_email varchar(100))
+BEGIN
+SELECT b.*, h.*, r.*, p.* FROM User u
+INNER JOIN UserClient uc ON uc.id = u.id
+INNER JOIN OnlineBooking ob ON ob.user_id = uc.id
+INNER JOIN Booking b ON b.id = ob.oid
+INNER JOIN BookRooms br ON br.booking_id = b.id
+INNER JOIN Rooms r ON r.room_id = br.room_id
+INNER JOIN Hotel h ON r.hotel_id = h.id
+INNER JOIN payment p ON p.booking_id = b.id 
+WHERE u.email = user_email;
+END //
+DELIMITER ; 
 
+SELECT b.*, h.*, r.*, p.* FROM User u
+INNER JOIN UserClient uc ON uc.id = u.id
+INNER JOIN OnlineBooking ob ON ob.user_id = uc.id
+INNER JOIN Booking b ON b.id = ob.oid
+INNER JOIN BookRooms br ON br.booking_id = b.id
+INNER JOIN Rooms r ON r.room_id = br.room_id
+INNER JOIN Hotel h ON r.hotel_id = h.id
+INNER JOIN payment p ON p.booking_id = b.id 
+WHERE u.email = "shreya@gmail.com";
