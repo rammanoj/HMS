@@ -44,6 +44,7 @@ create table Rooms (
     capacity INT NOT NULL,
     cost FLOAT NOT NULL,
     hotel_id INT NOT NULL,
+    blocked BOOLEAN default 0,
     PRIMARY KEY (room_id),
     FOREIGN KEY (hotel_id) REFERENCES Hotel(id) on delete cascade
 );
@@ -154,7 +155,7 @@ else
 	insert into User(name, user_password, email, address_id) values (username, user_pass, user_email, address);
 end if;
 insert into UserClient (id, dob) values (LAST_INSERT_ID(), ddob);
-commit;
+COMMIT;
 END //
 DELIMITER ;
 
@@ -216,12 +217,93 @@ WHERE u.email = user_email;
 END //
 DELIMITER ; 
 
-SELECT b.*, h.*, r.*, p.* FROM User u
-INNER JOIN UserClient uc ON uc.id = u.id
-INNER JOIN OnlineBooking ob ON ob.user_id = uc.id
-INNER JOIN Booking b ON b.id = ob.oid
-INNER JOIN BookRooms br ON br.booking_id = b.id
-INNER JOIN Rooms r ON r.room_id = br.room_id
-INNER JOIN Hotel h ON r.hotel_id = h.id
-INNER JOIN payment p ON p.booking_id = b.id 
-WHERE u.email = "shreya@gmail.com";
+DROP function if exists bookOffRoom;
+DELIMITER //
+create function bookOffRoom(checkin_d date, checkout_d date, nof_days int, usermail varchar(100), amm float, pay_method varchar(30), username varchar(100), userid varchar(100))
+RETURNS INT
+DETERMINISTIC MODIFIES SQL DATA
+begin
+declare temp int;
+declare userid int;
+select id into userid from User where email=usermail;
+INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, NULL);
+set temp = LAST_INSERT_ID();
+INSERT INTO OfflineBooking (ofid, ofuser, ofuserid) values (temp, username, userid);
+INSERT INTO payment (amount, payment_method, booking_id) values (amm, pay_method, temp);
+return temp;
+END //
+DELIMITER ; 
+
+
+-- Triggers
+DROP TRIGGER if exists booking_validate_insert;
+DELIMITER //
+CREATE TRIGGER `booking_validate_insert`
+	BEFORE INSERT
+	ON `Booking`
+	FOR EACH ROW
+BEGIN
+	IF NEW.`checkin_date` > NEW. `checkout_date` THEN
+		SIGNAL SQLSTATE VALUE '45000'
+			SET MESSAGE_TEXT = 'Checkin date has to be less than Checkout date';
+	END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER if exists booking_validate_update;
+DELIMITER //
+CREATE TRIGGER `booking_validate_update`
+	BEFORE UPDATE
+	ON `Booking`
+	FOR EACH ROW
+BEGIN
+	IF NEW.`checkin_date` > NEW. `checkout_date` THEN
+		SIGNAL SQLSTATE VALUE '45000'
+			SET MESSAGE_TEXT = 'Checkin date has to be less than Checkout date';
+	END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER if exists booking_validate_insert;
+DELIMITER //
+CREATE TRIGGER `booking_validate_insert`
+	BEFORE UPDATE
+	ON `Booking`
+	FOR EACH ROW
+BEGIN
+	IF NEW.`checkin_date` < CURDATE() THEN
+		SIGNAL SQLSTATE VALUE '45000'
+			SET MESSAGE_TEXT = 'Checkin date cannot be in past!';
+	END IF;
+END //
+DELIMITER ;
+
+
+DROP TRIGGER if exists user_mail_validate_insert;
+DELIMITER //
+CREATE TRIGGER `user_mail_validate_insert`
+	BEFORE INSERT
+	ON `User`
+	FOR EACH ROW
+BEGIN
+	IF EXISTS (select email from User where email=NEW.`email`) THEN
+		SIGNAL SQLSTATE VALUE '45000'
+			SET MESSAGE_TEXT = 'User email already exists in DB!';
+	END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER if exists room_add;
+DELIMITER //
+CREATE TRIGGER `room_add`
+	BEFORE INSERT
+	ON `Rooms`
+	FOR EACH ROW
+BEGIN
+	IF EXISTS (select room_no from Rooms where room_no=NEW.`room_no`) THEN
+		SIGNAL SQLSTATE VALUE '45000'
+			SET MESSAGE_TEXT = 'Room already exists in DB!';
+	END IF;
+END //
+DELIMITER ;
+
