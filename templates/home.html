@@ -158,7 +158,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" id="paybook">Save changes</button>
+            <button type="button" class="btn btn-primary" id="paybook">Book Room</button>
           </div>
         </div>
       </div>
@@ -167,27 +167,26 @@
         var tCount = 0;
         let modal, _ = document.getElementById.bind(document);
         function showRemove(event) {
-          console.log(event.target.id);
-          if(document.getElementById(event.target.id).innerText == "+") {
-            document.getElementById(event.target.id).classList.remove("btn-primary");
-            document.getElementById(event.target.id).classList.remove("room-add");
-            document.getElementById(event.target.id).classList.add("btn-danger");
-            document.getElementById(event.target.id).classList.add("room-rem");
-            document.getElementById(event.target.id).innerText = "-";
+          if(_(event.target.id).innerText == "+") {
+            _(event.target.id).classList.remove("btn-primary");
+            _(event.target.id).classList.remove("room-add");
+            _(event.target.id).classList.add("btn-danger");
+            _(event.target.id).classList.add("room-rem");
+            _(event.target.id).innerText = "-";
             tCount += 1;
 
           } else {
-            document.getElementById(event.target.id).classList.remove("btn-danger");
-            document.getElementById(event.target.id).classList.remove("room-rem");
-            document.getElementById(event.target.id).classList.add("btn-primary");
-            document.getElementById(event.target.id).classList.add("room-add");
-            document.getElementById(event.target.id).innerText = "+";
+            _(event.target.id).classList.remove("btn-danger");
+            _(event.target.id).classList.remove("room-rem");
+            _(event.target.id).classList.add("btn-primary");
+            _(event.target.id).classList.add("room-add");
+            _(event.target.id).innerText = "+";
             tCount -= 1;
           }
           if(tCount == 0) {
-            document.getElementById("roomcount").innerHTML = "";
+            _("roomcount").innerHTML = "";
           } else {
-            document.getElementById("roomcount").innerHTML = "( " + tCount + " )";
+            _("roomcount").innerHTML = "( " + tCount + " )";
           }
         }
 
@@ -196,12 +195,12 @@
             alert("No rooms added to book!");
           } else {
               showClientData();
-              if(document.getElementById("usertype").innerHTML.toLowerCase() != "client") {
-                document.getElementById("bookinguserdata").style.display = "block";
+              if(_("usertype").innerHTML.toLowerCase() != "client") {
+                _("bookinguserdata").style.display = "block";
               } else {
-                document.getElementById("bookinguserdata").style.display = "none";
+                _("bookinguserdata").style.display = "none";
               }
-              modal = new bootstrap.Modal(document.getElementById('paymentModal'), {});
+              modal = new bootstrap.Modal(_('paymentModal'), {});
               modal.show();
           }
         }
@@ -211,12 +210,12 @@
           let content = "", cost = 0;
           for(let remove of removes) {
             let rv = remove.id.split("-")[1];
-            content += "<tr><td>" + document.getElementById("roomNo-" + rv).innerHTML + "</td><td>";
-            content += document.getElementById("roomCap-" + rv).innerHTML + "</td></tr>";
-            cost += datediff(document.getElementById("start_date").valueAsDate, document.getElementById("end_date").valueAsDate) * parseInt(document.getElementById("roomCost-" + rv).innerHTML.replace("$", ""));
+            content += "<tr><td>" + _("roomNo-" + rv).innerHTML + "</td><td>";
+            content += _("roomCap-" + rv).innerHTML + "</td></tr>";
+            cost += datediff(_("start_date").valueAsDate, _("end_date").valueAsDate) * parseInt(_("roomCost-" + rv).innerHTML.replace("$", ""));
           }
-          document.getElementById("modaltable").innerHTML = content;
-          document.getElementById("cost").value = "$" + cost;
+          _("modaltable").innerHTML = content;
+          _("cost").value = "$" + cost;
         }
 
         function hideModal(event) {
@@ -235,7 +234,12 @@
               "start_date": _("start_date").value,
               "end_date": _("end_date").value
             };
-            console.log(data)
+
+            if(_("usertype").innerHTML.toLowerCase() != "client") {
+              data['user'] = _("username").value,
+              data['userid'] = _("userid").value
+            }
+
             fetch("/book", {
               body: JSON.stringify(data),
               method: "POST",

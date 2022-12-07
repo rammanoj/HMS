@@ -63,10 +63,25 @@ def bookOnlineRoom(checkin, checkout, no_of_days, email, amnt, payment):
     conn.commit()
     return o
 
+def bookOfflineRoom(checkin, checkout, no_of_days, email, amnt, payment, username, userid):
+    cursor.execute("SELECT bookOffRoom(%s, %s, %s, %s, %s, %s, %s, %s)", (checkin, checkout, int(no_of_days), email, float(amnt), payment, username, userid))
+    o = cursor.fetchall()
+    conn.commit()
+    return o
+
 def getRoomIDs(roomid):
     cursor.execute("SELECT room_id from Rooms where room_no=%s", (int(roomid),))
     return cursor.fetchall()
 
 def bookRoom(id, bookingid):
     cursor.execute("INSERT INTO BookRooms (booking_id, room_id) values (%s, %s)", (int(bookingid), int(id)))
+    conn.commit()
+
+def createRoom(room, cost, floor, capacity):
+    cursor.execute("INSERT INTO Rooms (room_no, floor, capacity, cost, hotel_id) values (%s, %s, %s, %s, %s)", (room, floor, capacity, cost, 1))
+    conn.commit()
+    return cursor.lastrowid
+
+def deleteRoom(room):
+    cursor.execute("DELETE FROM Rooms where room_id=%s", (room,))
     conn.commit()

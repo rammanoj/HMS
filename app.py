@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings, bookOnlineRoom, bookRoom, getRoomIDs
-from datetime import datetime
+from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings, bookOnlineRoom, bookRoom, getRoomIDs, bookOfflineRoom, createRoom, deleteRoom
+from datetime import datetime, timedelta
+from mysql.connector import DatabaseError
 
 app = Flask(__name__)
 app.secret_key = 'test_secret_key'
@@ -18,8 +19,6 @@ def register():
     else:
         f = request.form
         username, password, repass, email, dob, street, city, pincode = f.get("username"), f.get("psw"), f.get("psw-repeat"), f.get("email"), f.get("dob"), f.get("street"), f.get("city"), f.get("pincode")
-        if checkUserEmailExist(email):
-            return render_template("register.html", message="User already exist in db!", color="red", username=username, email=email, dob=dob, city=city, pincode=pincode, street=street)
         if len(password) < 8:
             return render_template("register.html", message="Password length cannot be less than 8!", color="red", username=username, email=email, dob=dob, city=city, pincode=pincode, street=street)
         if password != repass:
@@ -31,7 +30,12 @@ def register():
         if add_id == -1:
             add_id = createAddress(street, city, pincode)
         
-        createUser(username, password, email, dob, add_id)
+        try:
+            createUser(username, password, email, dob, add_id)
+        except DatabaseError as e:
+            print(str(e))
+            return render_template("register.html", message=str(e).split(":")[1], color="red", username=username, email=email, dob=dob, city=city, pincode=pincode, street=street)
+
         return render_template("register.html", message="User Successfully created. Please login to continue", color="green")
 
 
@@ -137,15 +141,55 @@ def bookRoomView():
 
     # book the rooms
     d = request.json
+
+    if session.get("type").lower() == "staff":
+        if d['user'] == "" or d['userid'] == "":
+            return {"message": "UserId or Username cannot be empty!", "error": 1}
+
+
     rooms = [getRoomIDs(i)[0][0] for i in d['room']]
     if not check_available(datetime.strptime(d['start_date'], "%Y-%m-%d"), datetime.strptime(d['end_date'], "%Y-%m-%d"), rooms):
         return {"message": "Rooms are not available on selected dates!", "error": 1}
     no_days = (datetime.strptime(d['end_date'], "%Y-%m-%d") - datetime.strptime(d['start_date'], "%Y-%m-%d")).days
-    id = bookOnlineRoom(d['start_date'], d['end_date'], no_days, session.get("email"), d.get("cost").replace("$", ""), d['payment_type'])
+
+    try:
+        if session.get("type").lower() == "staff":
+            id = bookOfflineRoom(d['start_date'], d['end_date'], no_days, session.get("email"), d.get("cost").replace("$", ""), d['payment_type'], d['user'], d['userid'])
+        else:
+            id = bookOnlineRoom(d['start_date'], d['end_date'], no_days, session.get("email"), d.get("cost").replace("$", ""), d['payment_type'])
+    except DatabaseError as e:
+        print(str(e))
+        return {"message": str(e).split(":")[1], "error": 1}
+
     for i in rooms:
         bookRoom(i, id[0][0])
     return {"message": "Successfully Booked Rooms", "error": 0}
     
+
+@app.route("/rooms", methods=["GET", "POST"])
+def RoomsView():
+    if not isLoggedIn():
+        render_template("error.html", message="You do not have permission to perform this action!")
+
+    if session.get("type").lower() != "staff":
+        render_template("error.html", message="You do not have permission to access this page!")
+
+    if request.method == "GET":
+        return render_template("rooms.html", rooms=getRooms())
+    else:
+        # create newly added room
+        d = request.json
+        if d['operation'] == "create":
+            if d['room'] == "" or d['cost'] == "" or d['floor'] == "" or d['capacity'] == "":
+                return {"message": "Please fill all the values", "error": 1}
+            try:
+                id = createRoom(d['room'], d['cost'], d['floor'], d['capacity'])
+                return {"message": "Room create successfully", "error": 0, "id": id}
+            except DatabaseError as e:
+                return {"message": str(e).split(":")[1], "error": 1}
+        else:
+            deleteRoom(d['room'])
+            return {"message": "Room successfully deleted", "error": 0}
 
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
