@@ -179,59 +179,56 @@ def history():
     if not isLoggedIn():
         return render_template("error.html", message="You do not have permission to access the page!")
     else:
+        bookings, data = getBookingsForUser(session['email'], session['type']), {}
+        for booking in bookings:
+            today, operation = datetime.today().strftime("%Y-%m-%d"), None
+            if booking[2].strftime("%Y-%m-%d") < today:
+                operation = "past"
+            elif booking[1].strftime("%Y-%m-%d") <= today and today <= booking[2].strftime("%Y-%m-%d"):
+                operation = "present"
+            else:
+                operation = "future"
+
+            print(booking)
+
+            if session['type'].lower() != "staff":
+                if booking[0] not in data:
+                    data[booking[0]] = {"data": {
+                        "start_date": datetime.strftime(booking[1], "%Y-%m-%d"),
+                        "end_date": datetime.strftime(booking[2], "%Y-%m-%d"),
+                        "rooms": [[booking[8], booking[10]]],
+                        "cost": booking[15],
+                        "payment_type": booking[16],
+                        "days": booking[3],
+                        "op": operation,
+                        "cancelled": 0 if booking[4] == True else 1,
+                        "id": booking[0]
+                    }, "op": operation }
+                else:
+                    data[booking[0]]['data']['rooms'].append([booking[8], booking[10]])
+            else:
+                if booking[0] not in data:
+                    data[booking[0]] = {"data": {
+                        "start_date": datetime.strftime(booking[1], "%Y-%m-%d"),
+                        "end_date": datetime.strftime(booking[2], "%Y-%m-%d"),
+                        "rooms": [[booking[8], booking[10]]],
+                        "cost": booking[15],
+                        "payment_type": booking[16],
+                        "type": "offline" if booking[21] != None else "online",
+                        "user": booking[21] if booking[21] != None else booking[24],
+                        "days": booking[3],
+                        "op": operation,
+                        "cancelled": 0 if booking[4] == True else 1,
+                        "id": booking[0]
+                    }, "op": operation }
+                else:
+                    data[booking[0]]['data']['rooms'].append([booking[8], booking[10]])
+
         if request.method == "GET":
-            bookings = getBookingsForUser(session['email'])
-            present = []
-            future = []
-            past = []
-            for booking in bookings:
-                today = datetime.today().strftime("%Y-%m-%d")
-                temp = []
-                if booking[2].strftime("%Y-%m-%d") < today:
-                    for _ in booking:
-                        temp.append(_)
-                    past.append(temp)
-                elif booking[1].strftime("%Y-%m-%d") <= today and today <= booking[2].strftime("%Y-%m-%d"):
-                    for _ in booking:
-                        temp.append(_)
-                    present.append(temp)
-                else:
-                    for _ in booking:
-                        temp.append(_)
-                    future.append(temp)
-                    print(future)
-
-
-            return render_template("history.html", past = past, future = future, present = present)
+            return render_template("history.html", data = data)
         else:
-            f = request.form
-            room_id = f.get("room_id")
-            print("room_id")
-            print(room_id)
-            if not deleteRoomBooking(room_id):
-                return render_template("history.html",  message="Room Booking could not be cancelled!",color="red",past = past, future = future, present = present)
-            bookings = getBookingsForUser(session['email'])
-            present = []
-            future = []
-            past = []
-            for booking in bookings:
-                today = datetime.today().strftime("%Y-%m-%d")
-                temp = []
-                if booking[2].strftime("%Y-%m-%d") < today:
-                    for _ in booking:
-                        temp.append(_)
-                    past.append(temp)
-                elif booking[1].strftime("%Y-%m-%d") <= today and today <= booking[2].strftime("%Y-%m-%d"):
-                    for _ in booking:
-                        temp.append(_)
-                    present.append(temp)
-                else:
-                    for _ in booking:
-                        temp.append(_)
-                    future.append(temp)
-                    print(future)
-            return render_template("history.html",  message="Room Booking successfully cancelled!",color="green",past = past, future = future, present = present)
-    
+            deleteRoomBooking(request.json.get("id"))
+            return {"message": "Cancelled the booking", "error": 0}
 
 @app.route("/rooms", methods=["GET", "POST"])
 def RoomsView():

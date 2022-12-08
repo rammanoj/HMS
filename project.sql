@@ -193,7 +193,7 @@ begin
 declare temp int;
 declare userid int;
 select id into userid from User where email=usermail;
-INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, NULL);
+INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, 0);
 set temp = LAST_INSERT_ID();
 INSERT INTO OnlineBooking (oid, user_id) values (temp, userid);
 INSERT INTO payment (amount, payment_method, booking_id) values (amm, pay_method, temp);
@@ -217,6 +217,21 @@ WHERE u.email = user_email;
 END //
 DELIMITER ; 
 
+DROP procedure if exists searchStaffUserBookings;
+DELIMITER //
+create procedure searchStaffUserBookings()
+BEGIN
+SELECT b.*, h.*, r.*, p.*, ob.*, offf.*, u.* FROM Booking b
+LEFT OUTER JOIN OnlineBooking ob ON ob.oid = b.id
+LEFT OUTER JOIN OfflineBooking offf ON offf.ofid = b.id
+LEFT OUTER JOIN BookRooms br ON br.booking_id = b.id
+LEFT OUTER JOIN Rooms r ON r.room_id = br.room_id
+LEFT OUTER JOIN Hotel h ON r.hotel_id = h.id
+LEFT OUTER JOIN payment p ON p.booking_id = b.id 
+LEFT OUTER JOIN User u on u.id = ob.user_id; 
+END //
+DELIMITER ; 
+
 DROP function if exists bookOffRoom;
 DELIMITER //
 create function bookOffRoom(checkin_d date, checkout_d date, nof_days int, usermail varchar(100), amm float, pay_method varchar(30), username varchar(100), userid varchar(100))
@@ -226,7 +241,7 @@ begin
 declare temp int;
 declare userid int;
 select id into userid from User where email=usermail;
-INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, NULL);
+INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, 0);
 set temp = LAST_INSERT_ID();
 INSERT INTO OfflineBooking (ofid, ofuser, ofuserid) values (temp, username, userid);
 INSERT INTO payment (amount, payment_method, booking_id) values (amm, pay_method, temp);

@@ -23,13 +23,12 @@
 </head>
 <body>
     <nav class = "navbar navbar-expand-lg bg-dark navbar-dark">
-          <a class="navbar-brand" href="/"> HMS </a>
-          {% if session.email %}
-             <a class="navbar-brand me-auto" href="/history"> Your Bookings </a>
-          {% endif %}
 
           <div class="navbar-brand me-auto">
             <a class="navbar-brand" href="/"> HMS </a>
+            {% if session.email %}
+                <a class="navbar-brand me-auto" href="/history"> Your Bookings </a>
+            {% endif %}
             {% if session.type == "Staff" %}
               <a class="navbar-brand" href="/rooms"> Rooms </a>
             {% endif %}  

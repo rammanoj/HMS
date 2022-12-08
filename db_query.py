@@ -54,7 +54,7 @@ def getRooms():
     return cursor.fetchall()
 
 def getBookings():
-    cursor.execute("select * from Booking inner join BookRooms on Booking.id = BookRooms.booking_id")
+    cursor.execute("select * from Booking inner join BookRooms on Booking.id = BookRooms.booking_id where Booking.cancelled = 0")
     return cursor.fetchall()
 
 def bookOnlineRoom(checkin, checkout, no_of_days, email, amnt, payment):
@@ -78,15 +78,16 @@ def bookRoom(id, bookingid):
     conn.commit()
 
 
-def getBookingsForUser(email):
-    print(email)
-    cursor.callproc("searchUserBookings",[email])
-    o = []
+def getBookingsForUser(email, type):
+    if type.lower() == "staff":
+        cursor.callproc("searchStaffUserBookings")
+    else:
+        cursor.callproc("searchUserBookings",[email])
     for res in cursor.stored_results():
         return res.fetchall()
 
 def deleteRoomBooking(room_id):
-    cursor.execute("DELETE FROM BookRooms WHERE room_id=%s",(int(room_id),))
+    cursor.execute("UPDATE Booking SET cancelled=1 where id=%s",(int(room_id),))
     if(cursor.rowcount < 1):
         return False
     return True
