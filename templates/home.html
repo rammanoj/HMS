@@ -88,7 +88,9 @@
               <h5>Available Rooms</h5>
             </div>
             <div class="col">
+                {% if user %}
                 <button class="btn btn-warning" onclick="bookRoom(event)" style="float: right;color: white;">Book Rooms <span id="roomcount"></span></button>
+                {% endif %}
             </div>
           </div>
           <br>

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<br>
+<div class="container">
+    <h4>Rooms Bookings over times. Please select time range to plot</h4>
+    {% if message %}
+    <br />
+    {% if error == 0 %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% else %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+  {% endif %}
+    <form action="/stats" method="get">
+    <label class = "form-label" ><b>Start Date:</b></label>
+    <input class ="form-control" type="date" name="start_date" id="start_date" value="{{ start }}" />
+    <label class = "form-label" for="end_date"><b>End Date:</b></label>
+    <input class ="form-control" type="date" name="end_date" id="end_date" value="{{ end }}" />
+    <br>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    {% if disp %}
+    <div style="height: 400px;width: 800px;text-align: center;">
+        <canvas id="myChart" style="display: inline;"></canvas>
+    </div>
+    <script>
+        var randomColorGenerator = function () { 
+    return '#' + (Math.random().toString(16) + '0000000').slice(2, 8); 
+};
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const data = {{ stats|tojson}}['data']
+    console.log(data)
+    let months = ['', 'Jan', 'Feb', 'Mar', "Apr", 'May', 'Jun', 'Jul', 'Aug', "Sep", 'Oct', 'Nov', 'Dec'];
+    let labels = Object.keys(data).map(i => months[i]);
+    console.log(labels)
+    let grData = Object.values(data);
+    console.log(grData)
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '# of Bookings',
+                data: grData,
+                backgroundColor: grData.map(x => randomColorGenerator()),
+                borderColor: grData.map(x => randomColorGenerator()),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

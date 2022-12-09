@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 
-from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings, bookOnlineRoom, bookRoom, getRoomIDs, bookOfflineRoom, createRoom, deleteRoom,getBookingsForUser, deleteRoomBooking
+from db_query import createAddress, searchAddress, createUser, checkUserEmailExist, checkUserExist, getUserDetails, updateUser, getRooms, getBookings, bookOnlineRoom, bookRoom, getRoomIDs, bookOfflineRoom, createRoom, deleteRoom,getBookingsForUser, deleteRoomBooking, updateBookings, get_stats
 from datetime import datetime, timedelta
 from mysql.connector import DatabaseError
 
@@ -137,8 +137,10 @@ def check_available(start, end, rooms):
     bookings = getBookings()
     rooms_len = len(rooms)
     print(rooms)
+    print(bookings)
     for i in bookings:
         if not (i[2] < start.date() or end.date() < i[1]):
+            print("Came in here...")
             if i[6] in rooms:
                 rooms.remove(i[6])
     return rooms_len == len(rooms)
@@ -197,8 +199,8 @@ def history():
                         "start_date": datetime.strftime(booking[1], "%Y-%m-%d"),
                         "end_date": datetime.strftime(booking[2], "%Y-%m-%d"),
                         "rooms": [[booking[8], booking[10]]],
-                        "cost": booking[15],
-                        "payment_type": booking[16],
+                        "cost": "$" + str(booking[14]),
+                        "payment_type": booking[15],
                         "days": booking[3],
                         "op": operation,
                         "cancelled": 0 if booking[4] == True else 1,
@@ -212,10 +214,10 @@ def history():
                         "start_date": datetime.strftime(booking[1], "%Y-%m-%d"),
                         "end_date": datetime.strftime(booking[2], "%Y-%m-%d"),
                         "rooms": [[booking[8], booking[10]]],
-                        "cost": booking[15],
-                        "payment_type": booking[16],
+                        "cost": "$" + str(booking[14]),
+                        "payment_type": booking[15],
                         "type": "offline" if booking[21] != None else "online",
-                        "user": booking[21] if booking[21] != None else booking[24],
+                        "user": booking[20] if booking[20] != None else booking[23],
                         "days": booking[3],
                         "op": operation,
                         "cancelled": 0 if booking[4] == True else 1,
@@ -246,6 +248,13 @@ def RoomsView():
         if d['operation'] == "create":
             if d['room'] == "" or d['cost'] == "" or d['floor'] == "" or d['capacity'] == "":
                 return {"message": "Please fill all the values", "error": 1}
+
+            try:
+                if int(d['room']) < 0 or int(d['cost']) < 0 or int(d['floor']) < 0 or int(d['capacity']) < 0:
+                    return {"message": "Values cannot be negative", "error": 1}
+            except Exception as e:
+                return {"message": "Enter a valid integer!", "error": 1}
+
             try:
                 id = createRoom(d['room'], d['cost'], d['floor'], d['capacity'])
                 return {"message": "Room create successfully", "error": 0, "id": id}
@@ -254,6 +263,71 @@ def RoomsView():
         else:
             deleteRoom(d['room'])
             return {"message": "Room successfully deleted", "error": 0}
+
+
+@app.route("/update_booking", methods=["POST"])
+def updateBooking():
+    if not isLoggedIn():
+        render_template("error.html", message="You do not have permission to perform this action!")
+
+    d = request.json
+    start, end = datetime.strptime(d['start_date'],  "%Y-%m-%d"), datetime.strptime(d['end_date'],  "%Y-%m-%d")
+    bookings = getBookings()
+    for i in bookings:
+        if i[0] == d['id']:
+            continue
+        if not (i[2] < start.date() or end.date() < i[1]):
+            if i[8] in d['rooms']:
+                return {"message": "Rooms not available on specified dates!", "error": 1}
+        
+    cost = 0
+    no_days = (end-start).days
+    for i in getRooms():
+        if i[1] in d['rooms']:
+            cost += no_days * i[4]
+
+    try:
+        updateBookings(start, end, no_days, cost, d['id'])
+    except DatabaseError as e:
+        print(str(e))
+        return {"message": str(e).split(":")[1], "error": 1}
+
+    return {"message": "Successfully updated bookings", "error": 0, "cost": cost, "no_days": no_days}
+
+
+@app.route("/stats", methods=["GET"])
+def stats():
+    if not isLoggedIn():
+        return render_template("error.html", message="You do not have permission to perform this action!")
+
+    if session.get("type") != "Staff":
+        return render_template("error.html", message="You do not have permission to perform this action!")
+
+    if "start_date" not in request.args and "end_date" not in request.args:
+        return render_template("stats.html")
+
+    if "start_date" not in request.args or "end_date" not in request.args:
+        return render_template("stats.html", message="Both dates need to be specified", error=1)
+
+
+    start_date = datetime.strptime(request.args['start_date'],  "%Y-%m-%d")
+    end_date = datetime.strptime(request.args['end_date'],  "%Y-%m-%d")
+
+    if (end_date - start_date).days > 365:
+        return render_template("stats.html", message="Time span cannot me more than 1 year!", error=1, start=request.args['start_date'], end=request.args['end_date'])
+
+    if (end_date - start_date).days < 60:
+        return render_template("stats.html", message="Time span cannot me less than 60 days!", error=1, start=request.args['start_date'], end=request.args['end_date'])
+
+    out = {}
+    iter = start_date
+    while iter < end_date:
+        out[iter.month] = 0
+        iter += timedelta(days=30)
+    print(get_stats(start_date, end_date))
+    for i in get_stats(start_date, end_date):
+        out[i[1].month] += 1
+    return render_template("stats.html", stats={"data": out}, disp=True, start=request.args['start_date'], end=request.args['end_date'])
 
 if __name__ == '__main__':
     app.run(debug=True, port=3000)

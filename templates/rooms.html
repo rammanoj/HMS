@@ -43,13 +43,13 @@
             <div class="modal-body">
               <div class="container">
                 <label class = "form-label" ><b>Room:</b></label>
-                <input class ="form-control" type="text" name="roomno" id="roomno" value="" />
+                <input class ="form-control" type="number" name="roomno" id="roomno" value="" />
                 <label class = "form-label" for="capacity"><b>Capacity:</b></label>
-                <input class ="form-control" type="text" name="capacity" id="capacity" value="" />
+                <input class ="form-control" type="number" name="capacity" id="capacity" value="" />
                 <label class = "form-label" for="cost"><b>Cost:</b></label>
-                <input class ="form-control" type="text" name="cost" id="cost" value="" />
+                <input class ="form-control" type="number" name="cost" id="cost" value="" />
                 <label class = "form-label" for="floor"><b>Floor:</b></label>
-                <input class ="form-control" type="text" name="floor" id="floor" value="" />
+                <input class ="form-control" type="number" name="floor" id="floor" value="" />
               </div>
             </div>
             <div class="modal-footer">
@@ -79,7 +79,6 @@
             }).then( resp => resp.json())
             .then(data => {
               if(data.error == 0) {
-                console.log(event)
                 event.target.parentNode.parentNode.remove();
                   // remove entry from list
                 _("messages").innerHTML = '<div class="alert alert-success">' + data.message + '</div>';

@@ -54,7 +54,7 @@ def getRooms():
     return cursor.fetchall()
 
 def getBookings():
-    cursor.execute("select * from Booking inner join BookRooms on Booking.id = BookRooms.booking_id where Booking.cancelled = 0")
+    cursor.execute("select * from Booking inner join BookRooms on Booking.id = BookRooms.booking_id inner join Rooms on BookRooms.room_id = Rooms.room_id where Booking.cancelled = 0")
     return cursor.fetchall()
 
 def bookOnlineRoom(checkin, checkout, no_of_days, email, amnt, payment):
@@ -100,3 +100,13 @@ def createRoom(room, cost, floor, capacity):
 def deleteRoom(room):
     cursor.execute("DELETE FROM Rooms where room_id=%s", (room,))
     conn.commit()
+
+def updateBookings(start, end, no_of, cost, id):
+    cursor.execute("SELECT updateBookings(%s, %s, %s, %s, %s)", (start, end, no_of, cost, id))
+    cursor.fetchall()
+    conn.commit()
+
+def get_stats(start, end):
+    print("SELECT * from Booking where checkin_date >= %s and checkout_date <= %s".format(start, end))
+    cursor.execute("SELECT * from Booking where checkin_date >= %s and checkout_date <= %s", (start, end))
+    return cursor.fetchall()

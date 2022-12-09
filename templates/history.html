@@ -53,12 +53,12 @@
 					  <br>
 					  <div class = "card" style="width: 18rem;">
 						  <div class="card-body">
-							  <div class="hidden">
+							  <div class="hidden" id="hid-{{ data[booking]['data']['id'] }}">
 								  {{ data[booking] }}
 							  </div>
-							  <p class="card-text">Start Date: {{ data[booking]['data']['start_date'] }}</p>
-							  <p class="card-text">End Date: {{ data[booking]['data']['end_date'] }}</p>
-							  <p class="card-text">Cost: ${{ data[booking]['data']['cost'] }}</p>
+							  <p class="card-text" id="start_date-{{ data[booking]['data']['id'] }}">Start Date: {{ data[booking]['data']['start_date'] }}</p>
+							  <p class="card-text" id="end_date-{{ data[booking]['data']['id'] }}">End Date: {{ data[booking]['data']['end_date'] }}</p>
+							  <p class="card-text" id="cost-{{ data[booking]['data']['id'] }}">Cost: ${{ data[booking]['data']['cost'] }}</p>
 							  <a href="#" class="btn btn-primary" onclick="detail(event)">View</a>
 							  <span id="cancelled-{{ data[booking]['data']['id'] }}" class="cancelled"> 
 								{% if data[booking]['data']['cancelled'] == 0 %}
@@ -78,12 +78,12 @@
 						<br>
 					  <div class = "card" style="width: 18rem;">
 						  <div class="card-body">
-							  <div class="hidden">
+							  <div class="hidden" id="hid-{{ data[booking]['data']['id'] }}">
 								  {{ data[booking] }}
 							  </div>
-							  <p class="card-text">Start Date: {{ data[booking]['data']['start_date'] }}</p>
-							  <p class="card-text">End Date: {{ data[booking]['data']['end_date'] }}</p>
-							  <p class="card-text">Cost: {{ data[booking]['data']['cost'] }}</p>
+							  <p class="card-text" id="start_date-{{ data[booking]['data']['id'] }}">Start Date: {{ data[booking]['data']['start_date'] }}</p>
+							  <p class="card-text" id="end_date-{{ data[booking]['data']['id'] }}">End Date: {{ data[booking]['data']['end_date'] }}</p>
+							  <p class="card-text" id="cost-{{ data[booking]['data']['id'] }}">Cost: {{ data[booking]['data']['cost'] }}</p>
 							  <a href="#" class="btn btn-primary" onclick="detail(event)">View</a>
 							  <span id="cancelled-{{ data[booking]['data']['id'] }}" class="cancelled"> 
 								{% if data[booking]['data']['cancelled'] == 0 %}
@@ -103,12 +103,12 @@
 							<br>
 						  <div class = "card" style="width: 18rem;">
 							  <div class="card-body">
-								  <div class="hidden">
+								  <div class="hidden" id="hid-{{ data[booking]['data']['id'] }}">
 									  {{ data[booking] }}
 								  </div>
-								  <p class="card-text">Start Date: {{ data[booking]['data']['start_date'] }}</p>
-								  <p class="card-text">End Date: {{ data[booking]['data']['end_date'] }}</p>
-								  <p class="card-text">Cost: {{ data[booking]['data']['cost'] }}</p>
+								  <p class="card-text" id="start_date-{{ data[booking]['data']['id'] }}">Start Date: {{ data[booking]['data']['start_date'] }}</p>
+								  <p class="card-text" id="end_date-{{ data[booking]['data']['id'] }}">End Date: {{ data[booking]['data']['end_date'] }}</p>
+								  <p class="card-text" id="cost-{{ data[booking]['data']['id'] }}">Cost: {{ data[booking]['data']['cost'] }}</p>
 								  <a href="#" class="btn btn-primary" onclick="detail(event)">View</a>
 								  <span id="cancelled-{{ data[booking]['data']['id'] }}"  class="cancelled"> 
 								  {% if data[booking]['data']['cancelled'] == 0 %}
@@ -133,10 +133,10 @@
 		      <div class="modal-body">
 		        	<div class="col">
 	                <label for="date"><b>Start Date</b></label>
-	                <input class ="form-control" type="date" placeholder="Enter start date" name="start_date" id="start_date" value="" readonly>
+	                <input class ="form-control" type="date" placeholder="Enter start date" name="start_date" id="start_date" value="">
 	        
 	                <label for="date"><b>End Date</b></label>
-	                <input class ="form-control" type="date" placeholder="Enter end date" name="end_date" id="end_date" value="" readonly>
+	                <input class ="form-control" type="date" placeholder="Enter end date" name="end_date" id="end_date" value="">
 	            
 	                <label for="days"><b>Number of days</b></label>
 	                <input class ="form-control" type="number" placeholder="Enter no of days" name="days" id="days" value="" readonly>
@@ -170,6 +170,7 @@
 					</table>
 
 					<div style="text-align: center;display: none;" id="cancel_but">
+						<button type="button" class="btn btn-warning" onclick="update_booking(event)">Update</button>
 						<button type="button" class="btn btn-danger" onclick="cancel_rooms(event)">Cancel</button>
 					</div>
 	            	</div>
@@ -184,7 +185,35 @@
 </div>
 
     <script type="text/javascript">
-		let modal, _ = document.getElementById.bind(document);
+		let modal, _ = document.getElementById.bind(document), rooms = [], val;
+
+		function update_booking(event) {
+			fetch("/update_booking", {
+				body: JSON.stringify({id: val['id'], start_date: _("start_date").value, end_date: _("end_date").value, rooms: rooms}),
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}).then(resp => resp.json())
+			.then( data => {
+				if(data['error'] == 1) {
+					_("messages").innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+				} else {
+					_("messages").innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+					val = JSON.parse(_("hid-" + val['id']).innerText.trim().replaceAll("'", "\""))['data'];
+					val['cost'] = "$" + data['cost']
+					val['end_date'] = _("end_date").value
+					val['start_date'] = _("start_date").value
+					val['days'] = data['no_days']
+					_("hid-" + val['id']).innerText = JSON.stringify({"data": val});
+					_("start_date-" + val['id']).innerText = "Start Date: " + _("start_date").value;
+					_("end_date-" + val['id']).innerText = "End Date: " + _("end_date").value;
+					_("cost-" + val['id']).innerText = "Cost: $" + data['cost'];
+					
+				}
+				modal.hide();
+			})
+		}
 
 		function cancel_rooms(event) {
 			if(confirm("Are you sure to cancel booking ?")) {
@@ -199,13 +228,16 @@
 				.then( data => {
 					_("messages").innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
 					modal.hide();
-					_("cancelled-" + id).innerText = "Cancelled"
+					_("cancelled-" + id).innerText = "Cancelled";
+
 				})
 			}
 		}
 
     	function detail(event) {
-			let val = JSON.parse(event.target.parentNode.childNodes[1].innerText.trim().replaceAll("'", "\""))['data'];
+			_("start_date").readOnly = false;
+			_("end_date").readOnly = false;
+			val = JSON.parse(event.target.parentNode.childNodes[1].innerText.trim().replaceAll("'", "\""))['data'];
 			_("start_date").value = val['start_date']
 			_("end_date").value = val['end_date']
 			_("days").value = val['days']
@@ -217,12 +249,20 @@
 			}
 			_("bookingid").value = val['id']
 			let out = ""
+			rooms = []
 			for(let i of val['rooms']) {
+				rooms.push(i[0])
 				out += "<tr><td>" + i[0] + "</td><td>" + i[1] + "</td></tr>"
 			}
 			_("user_room_table").innerHTML = out;
-			if(val['op'] == "future" && val['cancelled'] == 1) {
+			if(val['op'] == "future" && val['cancelled'] == 1 && !(_("cancelled-" + val['id']).innerText == "Cancelled")) {
 				_("cancel_but").style.display = "block"
+			} else {
+				_("cancel_but").style.display = "none"
+			}
+			if(val['op'] == "future" && (val['cancelled'] == 0  || (_("cancelled-" + val['id']).innerText == "Cancelled"))) {
+				_("start_date").readOnly = true;
+				_("end_date").readOnly = true;
 			}
 			modal = new bootstrap.Modal(_('view_booking'), {});
 			modal.show();

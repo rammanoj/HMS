@@ -1,5 +1,6 @@
 
 -- DDL
+
 drop database if exists hotels;
 create database hotels;
 
@@ -26,15 +27,15 @@ create table User(
     email varchar(100) NOT NULL,
     address_id INT NOT NULL,
     primary key (id),
-    foreign key (address_id) references Address(id) on update cascade
+    foreign key (address_id) references Address(id) on update cascade on delete restrict
 );
 
 create table Staff (
 	id INT NOT NULL,
     hotel_id INT NOT NULL,
     PRIMARY KEY (id),
-    FOREIGN KEY (id) references User(id) on delete cascade,
-    FOREIGN KEY (hotel_id) references Hotel(id) on delete cascade
+    FOREIGN KEY (id) references User(id) on delete restrict on update cascade,
+    FOREIGN KEY (hotel_id) references Hotel(id) on update cascade on delete restrict
 );
 
 create table Rooms (
@@ -44,9 +45,8 @@ create table Rooms (
     capacity INT NOT NULL,
     cost FLOAT NOT NULL,
     hotel_id INT NOT NULL,
-    blocked BOOLEAN default 0,
     PRIMARY KEY (room_id),
-    FOREIGN KEY (hotel_id) REFERENCES Hotel(id) on delete cascade
+    FOREIGN KEY (hotel_id) REFERENCES Hotel(id) on delete cascade on update cascade
 );
 
 create table Booking (
@@ -62,15 +62,15 @@ create table UserClient (
 	id int not null,
     dob date not null,
     primary key (id),
-    foreign key (id) references User(id) on delete cascade
+    foreign key (id) references User(id) on delete cascade on update cascade
 );
 
 create table OnlineBooking (
 	oid int not null,
     primary key (oid),
     user_id int not null,
-    foreign key (user_id) references UserClient(id) on update cascade,
-    foreign key (oid) references Booking(id) on update cascade
+    foreign key (user_id) references UserClient(id) on update cascade on delete restrict,
+    foreign key (oid) references Booking(id) on update cascade on delete restrict
 );
 
 create table OfflineBooking (
@@ -78,7 +78,7 @@ create table OfflineBooking (
     ofuser varchar(100) not null,
     ofuserid varchar(100) not null,
     primary key (ofid),
-    foreign key (ofid) references Booking(id) on update cascade
+    foreign key (ofid) references Booking(id) on update cascade on delete restrict
 );
 
 create table payment (
@@ -95,7 +95,7 @@ create table BookRooms (
     room_id int not null,
     primary key (booking_id, room_id),
     foreign key (booking_id) references Booking(id) on update cascade on delete cascade,
-    foreign key (room_id) references Rooms(room_id) on delete cascade
+    foreign key (room_id) references Rooms(room_id) on delete cascade on update cascade
 );
 
 create table StaffBookRoom (
@@ -111,38 +111,7 @@ create table StaffBookRoom (
 -- End of DDL
 
 
--- DML for Staff & Hotel
-INSERT INTO Hotel (name) values ('The Royal Suite');
-INSERT INTO Address (street, city, pincode) values ('444 Huntington Ave', 'Boston', '02115');
-INSERT INTO Address (street, city, pincode) values ('1022 Huntington Ave', 'Boston', '02115');
-INSERT INTO Address (street, city, pincode) values ('56 Huntington Ave', 'Boston', '02115');
-
-
-INSERT INTO User (name, user_password, email, address_id) values ('John', 'johnpass', 'john@gmail.com', 1);
-INSERT INTO User (name, user_password, email, address_id) values ('Michael', 'michaelpass', 'mike@gmail.com', 2);
-INSERT INTO User (name, user_password, email, address_id) values ('Michille', 'michillepass', 'michille@gmail.com', 2);
-INSERT INTO User (name, user_password, email, address_id) values ('Taylor', 'taylorpass', 'taylor@gmail.com', 3);
-
-INSERT INTO Staff (id, hotel_id) values (1, 1);
-INSERT INTO Staff (id, hotel_id) values (2, 1);
-INSERT INTO Staff (id, hotel_id) values (3, 1);
-INSERT INTO Staff (id, hotel_id) values (4, 1);
-
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (101, 1, 4, 300, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (102, 1, 2, 150, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (103, 1, 5, 400, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (201, 2, 6, 500, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (202, 2, 2, 150, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (203, 2, 3, 250, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (301, 3, 2, 125, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (302, 3, 3, 300, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (303, 3, 3, 275, 1);
-INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (401, 4, 1, 95, 1);
-
-
-
-
--- End of DML for Staff & Hotel
+-- Proceedures
 
 DROP procedure if exists createUser;
 DELIMITER //
@@ -166,6 +135,43 @@ BEGIN
 SELECT Uu.name, Staff.id, UserClient.id from (SELECT * FROM User where email=user_email and user_password=pass) as Uu left outer join Staff on Uu.id=Staff.id left outer join UserClient on Uu.id=UserClient.id;
 END //
 DELIMITER ;
+
+
+DROP procedure if exists searchUserBookings;
+DELIMITER //
+create procedure searchUserBookings(user_email varchar(100))
+BEGIN
+SELECT b.*, h.*, r.*, p.* FROM User u
+INNER JOIN UserClient uc ON uc.id = u.id
+INNER JOIN OnlineBooking ob ON ob.user_id = uc.id
+INNER JOIN Booking b ON b.id = ob.oid
+INNER JOIN BookRooms br ON br.booking_id = b.id
+INNER JOIN Rooms r ON r.room_id = br.room_id
+INNER JOIN Hotel h ON r.hotel_id = h.id
+INNER JOIN payment p ON p.booking_id = b.id 
+WHERE u.email = user_email;
+END //
+DELIMITER ; 
+
+DROP procedure if exists searchStaffUserBookings;
+DELIMITER //
+create procedure searchStaffUserBookings()
+BEGIN
+SELECT b.*, h.*, r.*, p.*, ob.*, offf.*, u.* FROM Booking b
+LEFT OUTER JOIN OnlineBooking ob ON ob.oid = b.id
+LEFT OUTER JOIN OfflineBooking offf ON offf.ofid = b.id
+LEFT OUTER JOIN BookRooms br ON br.booking_id = b.id
+LEFT OUTER JOIN Rooms r ON r.room_id = br.room_id
+LEFT OUTER JOIN Hotel h ON r.hotel_id = h.id
+LEFT OUTER JOIN payment p ON p.booking_id = b.id 
+LEFT OUTER JOIN User u on u.id = ob.user_id; 
+END //
+DELIMITER ; 
+
+-- End of Proceedures
+
+
+-- Functions
 
 DROP function if exists updateUser;
 DELIMITER //
@@ -201,37 +207,6 @@ return temp;
 END //
 DELIMITER ; 
 
-DROP procedure if exists searchUserBookings;
-DELIMITER //
-create procedure searchUserBookings(user_email varchar(100))
-BEGIN
-SELECT b.*, h.*, r.*, p.* FROM User u
-INNER JOIN UserClient uc ON uc.id = u.id
-INNER JOIN OnlineBooking ob ON ob.user_id = uc.id
-INNER JOIN Booking b ON b.id = ob.oid
-INNER JOIN BookRooms br ON br.booking_id = b.id
-INNER JOIN Rooms r ON r.room_id = br.room_id
-INNER JOIN Hotel h ON r.hotel_id = h.id
-INNER JOIN payment p ON p.booking_id = b.id 
-WHERE u.email = user_email;
-END //
-DELIMITER ; 
-
-DROP procedure if exists searchStaffUserBookings;
-DELIMITER //
-create procedure searchStaffUserBookings()
-BEGIN
-SELECT b.*, h.*, r.*, p.*, ob.*, offf.*, u.* FROM Booking b
-LEFT OUTER JOIN OnlineBooking ob ON ob.oid = b.id
-LEFT OUTER JOIN OfflineBooking offf ON offf.ofid = b.id
-LEFT OUTER JOIN BookRooms br ON br.booking_id = b.id
-LEFT OUTER JOIN Rooms r ON r.room_id = br.room_id
-LEFT OUTER JOIN Hotel h ON r.hotel_id = h.id
-LEFT OUTER JOIN payment p ON p.booking_id = b.id 
-LEFT OUTER JOIN User u on u.id = ob.user_id; 
-END //
-DELIMITER ; 
-
 DROP function if exists bookOffRoom;
 DELIMITER //
 create function bookOffRoom(checkin_d date, checkout_d date, nof_days int, usermail varchar(100), amm float, pay_method varchar(30), username varchar(100), userid varchar(100))
@@ -249,8 +224,23 @@ return temp;
 END //
 DELIMITER ; 
 
+DROP function if exists updateBookings;
+DELIMITER //
+create function updateBookings(checkin_d date, checkout_d date, nof_days int, payment float, bid int)
+RETURNS INT
+DETERMINISTIC MODIFIES SQL DATA
+begin
+UPDATE Booking SET checkin_date=checkin_d, checkout_date=checkout_d, no_of_days=nof_days where Booking.id = bid;
+UPDATE payment SET amount = payment where booking_id = bid;
+return null;
+END //
+DELIMITER ; 
+
+-- End of Functions
+
 
 -- Triggers
+
 DROP TRIGGER if exists booking_validate_insert;
 DELIMITER //
 CREATE TRIGGER `booking_validate_insert`
@@ -322,3 +312,36 @@ BEGIN
 END //
 DELIMITER ;
 
+-- End of Triggers
+
+
+-- DML for Staff & Hotel
+
+INSERT INTO Hotel (name) values ('The Royal Suite');
+INSERT INTO Address (street, city, pincode) values ('444 Huntington Ave', 'Boston', '02115');
+INSERT INTO Address (street, city, pincode) values ('1022 Huntington Ave', 'Boston', '02115');
+INSERT INTO Address (street, city, pincode) values ('56 Huntington Ave', 'Boston', '02115');
+
+
+INSERT INTO User (name, user_password, email, address_id) values ('John', 'johnpass', 'john@gmail.com', 1);
+INSERT INTO User (name, user_password, email, address_id) values ('Michael', 'michaelpass', 'mike@gmail.com', 2);
+INSERT INTO User (name, user_password, email, address_id) values ('Michille', 'michillepass', 'michille@gmail.com', 2);
+INSERT INTO User (name, user_password, email, address_id) values ('Taylor', 'taylorpass', 'taylor@gmail.com', 3);
+
+INSERT INTO Staff (id, hotel_id) values (1, 1);
+INSERT INTO Staff (id, hotel_id) values (2, 1);
+INSERT INTO Staff (id, hotel_id) values (3, 1);
+INSERT INTO Staff (id, hotel_id) values (4, 1);
+
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (101, 1, 4, 300, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (102, 1, 2, 150, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (103, 1, 5, 400, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (201, 2, 6, 500, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (202, 2, 2, 150, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (203, 2, 3, 250, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (301, 3, 2, 125, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (302, 3, 3, 300, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (303, 3, 3, 275, 1);
+INSERT INTO Rooms(room_no, floor, capacity, cost, hotel_id) values (401, 4, 1, 95, 1);
+
+-- End of DML for Staff & Hotel
