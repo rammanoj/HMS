@@ -277,9 +277,9 @@ BEGIN
 END //
 DELIMITER ;
 
-DROP TRIGGER if exists booking_validate_insert;
+DROP TRIGGER if exists booking_validate_insert_past;
 DELIMITER //
-CREATE TRIGGER `booking_validate_insert`
+CREATE TRIGGER `booking_validate_insert_past`
 	BEFORE UPDATE
 	ON `Booking`
 	FOR EACH ROW

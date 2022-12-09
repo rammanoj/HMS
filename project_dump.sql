@@ -30,7 +30,7 @@ CREATE TABLE `Address` (
   `city` varchar(100) NOT NULL,
   `pincode` varchar(6) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,7 +39,7 @@ CREATE TABLE `Address` (
 
 LOCK TABLES `Address` WRITE;
 /*!40000 ALTER TABLE `Address` DISABLE KEYS */;
-INSERT INTO `Address` VALUES (1,'444 Huntington Ave','Boston','02115'),(2,'1022 Huntington Ave','Boston','02115'),(3,'56 Huntington Ave','Boston','02115'),(4,'762 Huntington Ave','Boston','02115'),(5,'7621123Huntington Ave','Boston','02115'),(6,'76 Huntington Ave','Boston','02115'),(7,'2022-11-28','76 Huntington Ave','Boston'),(8,'2022-11-28','76 123Huntington Ave','Boston'),(9,'H-NO:53-1-93,SPRSCHOOL OF EXCELLENCE,BAOPET CROSS ROAD','WARANGAL URBAN DISTRICT','506371');
+INSERT INTO `Address` VALUES (1,'444 Huntington Ave','Boston','02115'),(2,'1022 Huntington Ave','Boston','02115'),(3,'56 Huntington Ave','Boston','02115');
 /*!40000 ALTER TABLE `Address` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -60,7 +60,7 @@ CREATE TABLE `Booking` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `booking_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `UserClient` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -69,9 +69,28 @@ CREATE TABLE `Booking` (
 
 LOCK TABLES `Booking` WRITE;
 /*!40000 ALTER TABLE `Booking` DISABLE KEYS */;
-INSERT INTO `Booking` VALUES (1,'2022-12-09','2022-12-15',6,0,5),(2,'2022-12-16','2022-12-18',2,0,6),(3,'2022-12-28','2022-12-31',3,0,5),(4,'2022-12-14','2022-12-20',6,1,5),(5,'2022-12-14','2022-12-21',7,0,5),(6,'2022-12-22','2022-12-30',8,0,7);
 /*!40000 ALTER TABLE `Booking` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `booking_validate_insert` BEFORE INSERT ON `booking` FOR EACH ROW BEGIN
+	IF NEW.`checkin_date` > NEW. `checkout_date` THEN
+		SIGNAL SQLSTATE VALUE '45000'
+			SET MESSAGE_TEXT = 'Checkin date has to be less than Checkout date';
+	END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
@@ -101,7 +120,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `booking_validate_insert` BEFORE UPDATE ON `booking` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `booking_validate_insert_past` BEFORE UPDATE ON `booking` FOR EACH ROW BEGIN
 	IF NEW.`checkin_date` < CURDATE() THEN
 		SIGNAL SQLSTATE VALUE '45000'
 			SET MESSAGE_TEXT = 'Checkin date cannot be in past!';
@@ -136,7 +155,6 @@ CREATE TABLE `BookRooms` (
 
 LOCK TABLES `BookRooms` WRITE;
 /*!40000 ALTER TABLE `BookRooms` DISABLE KEYS */;
-INSERT INTO `BookRooms` VALUES (1,1),(2,1),(1,2),(2,3),(3,5),(3,6),(4,7),(6,7),(5,8);
 /*!40000 ALTER TABLE `BookRooms` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -184,7 +202,6 @@ CREATE TABLE `OfflineBooking` (
 
 LOCK TABLES `OfflineBooking` WRITE;
 /*!40000 ALTER TABLE `OfflineBooking` DISABLE KEYS */;
-INSERT INTO `OfflineBooking` VALUES (1),(2),(3);
 /*!40000 ALTER TABLE `OfflineBooking` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -208,7 +225,6 @@ CREATE TABLE `OnlineBooking` (
 
 LOCK TABLES `OnlineBooking` WRITE;
 /*!40000 ALTER TABLE `OnlineBooking` DISABLE KEYS */;
-INSERT INTO `OnlineBooking` VALUES (4),(5),(6);
 /*!40000 ALTER TABLE `OnlineBooking` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -227,7 +243,7 @@ CREATE TABLE `payment` (
   PRIMARY KEY (`pay_reference`),
   KEY `booking_id` (`booking_id`),
   CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`booking_id`) REFERENCES `Booking` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -236,7 +252,6 @@ CREATE TABLE `payment` (
 
 LOCK TABLES `payment` WRITE;
 /*!40000 ALTER TABLE `payment` DISABLE KEYS */;
-INSERT INTO `payment` VALUES (1,2700,'CREDIT',1),(2,1400,'DEBIT',2),(3,1200,'UPI',3),(4,750,'CREDIT',4),(5,2100,'CREDIT',5),(6,1000,'CREDIT',6);
 /*!40000 ALTER TABLE `payment` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -257,7 +272,7 @@ CREATE TABLE `Rooms` (
   PRIMARY KEY (`room_id`),
   KEY `hotel_id` (`hotel_id`),
   CONSTRAINT `rooms_ibfk_1` FOREIGN KEY (`hotel_id`) REFERENCES `Hotel` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -266,7 +281,7 @@ CREATE TABLE `Rooms` (
 
 LOCK TABLES `Rooms` WRITE;
 /*!40000 ALTER TABLE `Rooms` DISABLE KEYS */;
-INSERT INTO `Rooms` VALUES (1,101,1,4,300,1),(2,102,1,2,150,1),(3,103,1,5,400,1),(4,201,2,6,500,1),(5,202,2,2,150,1),(6,203,2,3,250,1),(7,301,3,2,125,1),(8,302,3,3,300,1),(9,303,3,3,275,1),(10,401,4,1,95,1),(11,402,4,4,400,1);
+INSERT INTO `Rooms` VALUES (1,101,1,4,300,1),(2,102,1,2,150,1),(3,103,1,5,400,1),(4,201,2,6,500,1),(5,202,2,2,150,1),(6,203,2,3,250,1),(7,301,3,2,125,1),(8,302,3,3,300,1),(9,303,3,3,275,1),(10,401,4,1,95,1);
 /*!40000 ALTER TABLE `Rooms` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -343,7 +358,6 @@ CREATE TABLE `StaffBookRoom` (
 
 LOCK TABLES `StaffBookRoom` WRITE;
 /*!40000 ALTER TABLE `StaffBookRoom` DISABLE KEYS */;
-INSERT INTO `StaffBookRoom` VALUES (1,5,1),(1,5,3),(1,6,2);
 /*!40000 ALTER TABLE `StaffBookRoom` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -363,7 +377,7 @@ CREATE TABLE `User` (
   PRIMARY KEY (`id`),
   KEY `address_id` (`address_id`),
   CONSTRAINT `user_ibfk_1` FOREIGN KEY (`address_id`) REFERENCES `Address` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -372,7 +386,7 @@ CREATE TABLE `User` (
 
 LOCK TABLES `User` WRITE;
 /*!40000 ALTER TABLE `User` DISABLE KEYS */;
-INSERT INTO `User` VALUES (1,'John11','johnpass','john@gmail.com',1),(2,'Michael','michaelpass','mike@gmail.com',2),(3,'Michille','michillepass','michille@gmail.com',2),(4,'Taylor','taylorpass','taylor@gmail.com',3),(5,'rpotla','manoj1999','rammanojpotla1608@gmail.com',8),(6,'sam','na','sam@gmail.com',5),(7,'shreya','manoj1999','shreya@gmail.com',9);
+INSERT INTO `User` VALUES (1,'John','johnpass','john@gmail.com',1),(2,'Michael','michaelpass','mike@gmail.com',2),(3,'Michille','michillepass','michille@gmail.com',2),(4,'Taylor','taylorpass','taylor@gmail.com',3);
 /*!40000 ALTER TABLE `User` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -417,7 +431,6 @@ CREATE TABLE `UserClient` (
 
 LOCK TABLES `UserClient` WRITE;
 /*!40000 ALTER TABLE `UserClient` DISABLE KEYS */;
-INSERT INTO `UserClient` VALUES (5,'2022-11-27'),(6,'2022-11-27'),(7,'2022-11-29');
 /*!40000 ALTER TABLE `UserClient` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -651,4 +664,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-12-09 15:12:29
+-- Dump completed on 2022-12-09 18:44:15

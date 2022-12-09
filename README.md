@@ -8,7 +8,7 @@ An App for the Hotel to help manage it's bookings.
 - Download the provided zip file to local directory.
 - Download and Install MYSQL (version: 8.0.31) into the local system using [this][1]
 - Extract the downloaded project zip. All the requirements of the project zip are present in requirements.txt file.
-- This project uses Python-Flask for backend and Javascript, Bootstrap for frontend.
+- Download Python3 from [here][4].
 - Create a new virtual environment using this [link][2]
 - Once installed, activate the virtual environment using the following command:
 ``` 
@@ -60,31 +60,46 @@ python app.py (only if your virutalenv by default picks python3)
 
 ## Commands Operations:
 
-Procedures:
-createUser: This procedure is a transaction that takes the user name, password, date of birth and address as input and inserts the values into the user table. It also inserts the id created into UserClient table.
-searchUser: This procedure takes email and password as input and queries the user and user client table to check if a user exists.
+
+### Procedures:
+
+- **createUser:** This procedure is a transaction that takes the user name, password, date of birth and address as input and inserts the values into the user table. It also inserts the id created into UserClient table.
+- **searchUser:** This procedure takes email and password as input and queries the user and user client table to check if a user exists.
 searchUserBookings: This procedure takes email id as an argument and returns all the bookings done by the user by querying the database with multi-joins.
-searchStaffUserBookings: This procedure returns all the bookings done by the all users and staff so far by querying the database with multi-joins.
-Functions:
-updateUser: This function takes a user’s userid,user name, password email id, street, city, pincode , type of user and updates the address and user table.
-bookRoom: This function takes date, checkout date, no of days stay, user mail id, total amount, payment method as arguments and inserts into Booking table, OnlineBooking table, payment table.
-bookOffRoom: This function takes checkin date, checkout date, no of days, user mail id, total amount, payment method, username, user id as arguments inserts into Booking table, OfflineBooking table, payment table.
+- **searchUserBookings:** This proceedure returns all the bookings done by a specific user.
+- **searchStaffUserBookings:** This procedure returns all the bookings done by the all users and staff so far by querying the database with multi-joins.
 
-Trigger
-booking_validate_insert: This trigger validates booking information before inserting the information to booking table. 
-booking_validate_update: This trigger validates booking information before updating the information to booking table. 
-user_mail_validate_insert: This trigger validates email before inserting into user table.
-room_add: This trigger checks if the room already exists before inserting a room into a room table.
 
-Crud Operations:
-checkUserEmailExist: Select user data from User table to check if user exists.
-searchAddress: Select address from Address table to check if address exists.
-createAddress: Inserts values into address table
-getUserDetails: Selects user data from user table based on email.
-updateUser: Updates the values of user based on mail id
-getRooms: Selects all rooms data from Rooms table 
-getBookings: Selects all bookings from bookings table
-bookOnlineRoom: Selects data from bookRoom table based on arguments provided.
+### Functions:
+
+- **updateUser:** This function takes a user’s userid,user name, password email id, street, city, pincode , type of user and updates the address and user table.
+- **bookRoom:** This function takes date, checkout date, no of days stay, user mail id, total amount, payment method as arguments and inserts into Booking table, OnlineBooking table, payment table.
+- **bookOffRoom:** This function takes checkin date, checkout date, no of days, user mail id, total amount, payment method, username, user id as arguments inserts into Booking table, OfflineBooking table, payment table.
+- **updateBookings:** Updates the bookings.
+
+
+### Triggers:
+
+- **booking_validate_insert:** This trigger validates booking information before inserting the information to booking table. 
+- **booking_validate_update:** This trigger validates booking information before updating the information to booking table. 
+- **user_mail_validate_insert:** This trigger validates email before inserting into user table.
+- **room_add:** This trigger checks if the room already exists before inserting a room into a room table.
+
+
+## CRUD Operations:
+
+- **checkUserEmailExist:** Select user data from User table to check if user exists.
+- **searchAddress:** Select address from Address table to check if address exists.
+- **createAddress:** Inserts values into address table
+- **getUserDetails:** Selects user data from user table based on email.
+- **updateUser:** Updates the values of user based on mail id
+- **getRooms:** Selects all rooms data from Rooms table 
+- **getBookings:** Selects all bookings from bookings table
+- **bookOnlineRoom:** Selects data from bookRoom table based on arguments provided.
+- **UpdateOnlineBooking:** updates the booking.
+- **getRooms:** get the list of available rooms.
+- **AddRooms:** Adds a room to the hotel.
+- **DeleteRooms:** Delete a speciifed room from the hotel.
 
 
 
@@ -93,3 +108,4 @@ bookOnlineRoom: Selects data from bookRoom table based on arguments provided.
 [1]: https://dev.mysql.com/downloads/mysql/
 [2]: https://docs.python.org/3/library/venv.html#creating-virtual-environments
 [3]: https://flask.palletsprojects.com/en/2.2.x/installation/
+[4]: https://www.python.org/downloads/
