@@ -49,15 +49,6 @@ create table Rooms (
     FOREIGN KEY (hotel_id) REFERENCES Hotel(id) on delete cascade on update cascade
 );
 
-create table Booking (
-	id int not null auto_increment,
-    checkin_date Date,
-    checkout_date Date,
-    no_of_days int,
-    cancelled boolean,
-    PRIMARY KEY (id)
-);
-
 create table UserClient (
 	id int not null,
     dob date not null,
@@ -65,18 +56,25 @@ create table UserClient (
     foreign key (id) references User(id) on delete cascade on update cascade
 );
 
+create table Booking (
+	id int not null auto_increment,
+    checkin_date Date,
+    checkout_date Date,
+    no_of_days int,
+    cancelled boolean,
+    user_id int,
+    PRIMARY KEY (id),
+    foreign key (user_id) references UserClient(id) on update cascade on delete restrict
+);
+
 create table OnlineBooking (
 	oid int not null,
     primary key (oid),
-    user_id int not null,
-    foreign key (user_id) references UserClient(id) on update cascade on delete restrict,
     foreign key (oid) references Booking(id) on update cascade on delete restrict
 );
 
 create table OfflineBooking (
 	ofid int not null,
-    ofuser varchar(100) not null,
-    ofuserid varchar(100) not null,
     primary key (ofid),
     foreign key (ofid) references Booking(id) on update cascade on delete restrict
 );
@@ -89,6 +87,8 @@ create table payment (
     PRIMARY KEY (pay_reference),
     FOREIGN KEY (booking_id) references Booking(id) on update cascade on delete cascade
 );
+
+
 
 create table BookRooms (
 	booking_id int not null,
@@ -117,14 +117,17 @@ DROP procedure if exists createUser;
 DELIMITER //
 create procedure createUser(IN username varchar(100), IN user_email varchar(100), IN user_pass varchar(200), IN ddob date, IN address int)
 BEGIN
-start transaction;
-if (user_pass is null) then
-	insert into User(name, email, address_id) values (username, user_email, address);
+declare temp int default 0;
+if (user_pass = "na") then
+    select count(*) into temp from User where email=user_email;
+    if temp = 0 then
+    	insert into User(name, user_password, email, address_id) values (username, user_pass, user_email, address);
+        insert into UserClient (id, dob) values (LAST_INSERT_ID(), ddob);
+    end if;
 else
 	insert into User(name, user_password, email, address_id) values (username, user_pass, user_email, address);
+    insert into UserClient (id, dob) values (LAST_INSERT_ID(), ddob);
 end if;
-insert into UserClient (id, dob) values (LAST_INSERT_ID(), ddob);
-COMMIT;
 END //
 DELIMITER ;
 
@@ -141,14 +144,14 @@ DROP procedure if exists searchUserBookings;
 DELIMITER //
 create procedure searchUserBookings(user_email varchar(100))
 BEGIN
-SELECT b.*, h.*, r.*, p.* FROM User u
-INNER JOIN UserClient uc ON uc.id = u.id
-INNER JOIN OnlineBooking ob ON ob.user_id = uc.id
-INNER JOIN Booking b ON b.id = ob.oid
-INNER JOIN BookRooms br ON br.booking_id = b.id
-INNER JOIN Rooms r ON r.room_id = br.room_id
-INNER JOIN Hotel h ON r.hotel_id = h.id
-INNER JOIN payment p ON p.booking_id = b.id 
+SELECT b.*, h.*, r.*, p.*, ob.*, offf.*, u.* FROM Booking b
+LEFT OUTER JOIN OnlineBooking ob ON ob.oid = b.id
+LEFT OUTER JOIN OfflineBooking offf ON offf.ofid = b.id
+LEFT OUTER JOIN BookRooms br ON br.booking_id = b.id
+LEFT OUTER JOIN Rooms r ON r.room_id = br.room_id
+LEFT OUTER JOIN Hotel h ON r.hotel_id = h.id
+LEFT OUTER JOIN payment p ON p.booking_id = b.id 
+LEFT OUTER JOIN User u on u.id = b.user_id
 WHERE u.email = user_email;
 END //
 DELIMITER ; 
@@ -164,7 +167,7 @@ LEFT OUTER JOIN BookRooms br ON br.booking_id = b.id
 LEFT OUTER JOIN Rooms r ON r.room_id = br.room_id
 LEFT OUTER JOIN Hotel h ON r.hotel_id = h.id
 LEFT OUTER JOIN payment p ON p.booking_id = b.id 
-LEFT OUTER JOIN User u on u.id = ob.user_id; 
+LEFT OUTER JOIN User u on u.id = b.user_id; 
 END //
 DELIMITER ; 
 
@@ -199,9 +202,9 @@ begin
 declare temp int;
 declare userid int;
 select id into userid from User where email=usermail;
-INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, 0);
+INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled, user_id) values (checkin_d, checkout_d, nof_days, 0, userid);
 set temp = LAST_INSERT_ID();
-INSERT INTO OnlineBooking (oid, user_id) values (temp, userid);
+INSERT INTO OnlineBooking (oid) values (temp);
 INSERT INTO payment (amount, payment_method, booking_id) values (amm, pay_method, temp);
 return temp;
 END //
@@ -209,16 +212,21 @@ DELIMITER ;
 
 DROP function if exists bookOffRoom;
 DELIMITER //
-create function bookOffRoom(checkin_d date, checkout_d date, nof_days int, usermail varchar(100), amm float, pay_method varchar(30), username varchar(100), userid varchar(100))
+create function bookOffRoom(checkin_d date, checkout_d date, nof_days int, amm float, pay_method varchar(30), username varchar(100), mmail varchar(100), addd int, dob date, eemail varchar(100))
 RETURNS INT
 DETERMINISTIC MODIFIES SQL DATA
 begin
 declare temp int;
-declare userid int;
-select id into userid from User where email=usermail;
-INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, 0);
+declare user__id int default 0;
+declare staff__id int default 0;
+declare off_id int default 0;
+call createUser(username, mmail, "na", dob, addd);
+select id into user__id from User where email=mmail;
+select id into staff__id from User where email=eemail;
+INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled, user_id) values (checkin_d, checkout_d, nof_days, 0, user__id);
 set temp = LAST_INSERT_ID();
-INSERT INTO OfflineBooking (ofid, ofuser, ofuserid) values (temp, username, userid);
+INSERT INTO OfflineBooking (ofid) values (temp);
+INSERT INTO StaffBookRoom (staff_id, user_id, booking_id) values (staff__id, user__id, temp);
 INSERT INTO payment (amount, payment_method, booking_id) values (amm, pay_method, temp);
 return temp;
 END //

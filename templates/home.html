@@ -146,8 +146,16 @@
               <div id="bookinguserdata">
                 <label class = "form-label" ><b>Booking User:</b></label>
                 <input class ="form-control" type="text" name="username" id="username" value="" required />
-                <label class = "form-label" ><b>Booking User National Id:</b></label>
-                <input class ="form-control" type="text" name="userid" id="userid" value="" required /> 
+                <label class = "form-label" ><b>Booking User Email:</b></label>
+                <input class ="form-control" type="email" name="email" id="email" value="" required />
+                <label class = "form-label" ><b>Street:</b></label>
+                <input class ="form-control" type="text" name="street" id="street" value="" required /> 
+                <label class = "form-label" ><b>City:</b></label>
+                <input class ="form-control" type="text" name="city" id="city" value="" required /> 
+                <label class = "form-label" ><b>Pincode:</b></label>
+                <input class ="form-control" type="text" name="pincode" id="pincode" value="" required /> 
+                <label class = "form-label" ><b>DOB:</b></label>
+                <input class ="form-control" type="date" name="dob" id="dob" value="" required /> 
               </div>
               <label class = "form-label" for="payment"><b>Payment Method:</b></label>
               <select class="form-select" aria-label="Default select example" name="payment" id="payment">
@@ -239,7 +247,11 @@
 
             if(_("usertype").innerHTML.toLowerCase() != "client") {
               data['user'] = _("username").value,
-              data['userid'] = _("userid").value
+              data['email'] = _("email").value,
+              data['street'] = _("street").value,
+              data['city'] = _("city").value,
+              data['pincode'] = _("pincode").value,
+              data['dob'] = _("dob").value
             }
 
             fetch("/book", {

@@ -1,4 +1,5 @@
 from db import server_connect
+from flask import session
 
 conn = server_connect()
 cursor = conn.cursor()
@@ -42,7 +43,11 @@ def createAddress(street, city, pincode):
 
 def getUserDetails(email):
     cursor.execute("SELECT * from (SELECT * FROM User where email=%s) as U left outer join Staff on U.id=Staff.id left outer join UserClient on U.id=UserClient.id left outer join Address on U.address_id = Address.id", (email,))
-    return cursor.fetchall()[0]
+    o = cursor.fetchall()
+    if len(o) > 0:
+        return o[0]
+    else:
+        return ()
 
 def updateUser(id, username, password, email, street, city, pincode, type):
     cursor.execute("SELECT updateUser(%s, %s, %s, %s, %s, %s, %s, %s)", (int(id), username, password, email, street, city, pincode, type))
@@ -63,8 +68,8 @@ def bookOnlineRoom(checkin, checkout, no_of_days, email, amnt, payment):
     conn.commit()
     return o
 
-def bookOfflineRoom(checkin, checkout, no_of_days, email, amnt, payment, username, userid):
-    cursor.execute("SELECT bookOffRoom(%s, %s, %s, %s, %s, %s, %s, %s)", (checkin, checkout, int(no_of_days), email, float(amnt), payment, username, userid))
+def bookOfflineRoom(checkin, checkout, no_of_days, amnt, payment, username, mail, add_id, dob):
+    cursor.execute("SELECT bookOffRoom(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (checkin, checkout, int(no_of_days), float(amnt), payment, username, mail, add_id, dob, session['email']))
     o = cursor.fetchall()
     conn.commit()
     return o

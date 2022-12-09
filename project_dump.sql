@@ -30,7 +30,7 @@ CREATE TABLE `Address` (
   `city` varchar(100) NOT NULL,
   `pincode` varchar(6) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,7 +39,7 @@ CREATE TABLE `Address` (
 
 LOCK TABLES `Address` WRITE;
 /*!40000 ALTER TABLE `Address` DISABLE KEYS */;
-INSERT INTO `Address` VALUES (1,'444 Huntington Ave','Boston','02115'),(2,'1022 Huntington Ave','Boston','02115'),(3,'56 Huntington Ave','Boston','02115'),(4,'762 Huntington Ave','Boston','02115'),(5,'H-NO:53-1-93,SPRSCHOOL OF EXCELLENCE,BAOPET CROSS ROAD','WARANGAL URBAN DISTRICT','506371'),(6,'7621 Huntington Ave','Boston','02115');
+INSERT INTO `Address` VALUES (1,'444 Huntington Ave','Boston','02115'),(2,'1022 Huntington Ave','Boston','02115'),(3,'56 Huntington Ave','Boston','02115'),(4,'762 Huntington Ave','Boston','02115'),(5,'7621123Huntington Ave','Boston','02115'),(6,'76 Huntington Ave','Boston','02115'),(7,'2022-11-28','76 Huntington Ave','Boston'),(8,'2022-11-28','76 123Huntington Ave','Boston'),(9,'H-NO:53-1-93,SPRSCHOOL OF EXCELLENCE,BAOPET CROSS ROAD','WARANGAL URBAN DISTRICT','506371');
 /*!40000 ALTER TABLE `Address` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -56,8 +56,11 @@ CREATE TABLE `Booking` (
   `checkout_date` date DEFAULT NULL,
   `no_of_days` int DEFAULT NULL,
   `cancelled` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `user_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `booking_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `UserClient` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -66,7 +69,7 @@ CREATE TABLE `Booking` (
 
 LOCK TABLES `Booking` WRITE;
 /*!40000 ALTER TABLE `Booking` DISABLE KEYS */;
-INSERT INTO `Booking` VALUES (1,'2022-12-14','2022-12-17',3,0),(2,'2022-12-15','2022-12-30',15,0),(3,'2022-12-14','2022-12-20',6,0),(4,'2022-12-21','2022-12-24',3,1);
+INSERT INTO `Booking` VALUES (1,'2022-12-09','2022-12-15',6,0,5),(2,'2022-12-16','2022-12-18',2,0,6),(3,'2022-12-28','2022-12-31',3,0,5),(4,'2022-12-14','2022-12-20',6,1,5),(5,'2022-12-14','2022-12-21',7,0,5),(6,'2022-12-22','2022-12-30',8,0,7);
 /*!40000 ALTER TABLE `Booking` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -133,7 +136,7 @@ CREATE TABLE `BookRooms` (
 
 LOCK TABLES `BookRooms` WRITE;
 /*!40000 ALTER TABLE `BookRooms` DISABLE KEYS */;
-INSERT INTO `BookRooms` VALUES (1,1),(1,2),(2,3),(2,4),(3,8),(3,10),(4,10);
+INSERT INTO `BookRooms` VALUES (1,1),(2,1),(1,2),(2,3),(3,5),(3,6),(4,7),(6,7),(5,8);
 /*!40000 ALTER TABLE `BookRooms` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -170,8 +173,6 @@ DROP TABLE IF EXISTS `OfflineBooking`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `OfflineBooking` (
   `ofid` int NOT NULL,
-  `ofuser` varchar(100) NOT NULL,
-  `ofuserid` varchar(100) NOT NULL,
   PRIMARY KEY (`ofid`),
   CONSTRAINT `offlinebooking_ibfk_1` FOREIGN KEY (`ofid`) REFERENCES `Booking` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -183,7 +184,7 @@ CREATE TABLE `OfflineBooking` (
 
 LOCK TABLES `OfflineBooking` WRITE;
 /*!40000 ALTER TABLE `OfflineBooking` DISABLE KEYS */;
-INSERT INTO `OfflineBooking` VALUES (2,'agarwal','1');
+INSERT INTO `OfflineBooking` VALUES (1),(2),(3);
 /*!40000 ALTER TABLE `OfflineBooking` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -196,11 +197,8 @@ DROP TABLE IF EXISTS `OnlineBooking`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `OnlineBooking` (
   `oid` int NOT NULL,
-  `user_id` int NOT NULL,
   PRIMARY KEY (`oid`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `onlinebooking_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `UserClient` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `onlinebooking_ibfk_2` FOREIGN KEY (`oid`) REFERENCES `Booking` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT `onlinebooking_ibfk_1` FOREIGN KEY (`oid`) REFERENCES `Booking` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -210,7 +208,7 @@ CREATE TABLE `OnlineBooking` (
 
 LOCK TABLES `OnlineBooking` WRITE;
 /*!40000 ALTER TABLE `OnlineBooking` DISABLE KEYS */;
-INSERT INTO `OnlineBooking` VALUES (1,5),(4,5),(3,6);
+INSERT INTO `OnlineBooking` VALUES (4),(5),(6);
 /*!40000 ALTER TABLE `OnlineBooking` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -229,7 +227,7 @@ CREATE TABLE `payment` (
   PRIMARY KEY (`pay_reference`),
   KEY `booking_id` (`booking_id`),
   CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`booking_id`) REFERENCES `Booking` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -238,7 +236,7 @@ CREATE TABLE `payment` (
 
 LOCK TABLES `payment` WRITE;
 /*!40000 ALTER TABLE `payment` DISABLE KEYS */;
-INSERT INTO `payment` VALUES (1,1350,'CREDIT',1),(2,13500,'CREDIT',2),(3,2370,'MOBILE WALLET',3),(4,285,'UPI',4);
+INSERT INTO `payment` VALUES (1,2700,'CREDIT',1),(2,1400,'DEBIT',2),(3,1200,'UPI',3),(4,750,'CREDIT',4),(5,2100,'CREDIT',5),(6,1000,'CREDIT',6);
 /*!40000 ALTER TABLE `payment` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -259,7 +257,7 @@ CREATE TABLE `Rooms` (
   PRIMARY KEY (`room_id`),
   KEY `hotel_id` (`hotel_id`),
   CONSTRAINT `rooms_ibfk_1` FOREIGN KEY (`hotel_id`) REFERENCES `Hotel` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -268,7 +266,7 @@ CREATE TABLE `Rooms` (
 
 LOCK TABLES `Rooms` WRITE;
 /*!40000 ALTER TABLE `Rooms` DISABLE KEYS */;
-INSERT INTO `Rooms` VALUES (1,101,1,4,300,1),(2,102,1,2,150,1),(3,103,1,5,400,1),(4,201,2,6,500,1),(5,202,2,2,150,1),(6,203,2,3,250,1),(7,301,3,2,125,1),(8,302,3,3,300,1),(9,303,3,3,275,1),(10,401,4,1,95,1);
+INSERT INTO `Rooms` VALUES (1,101,1,4,300,1),(2,102,1,2,150,1),(3,103,1,5,400,1),(4,201,2,6,500,1),(5,202,2,2,150,1),(6,203,2,3,250,1),(7,301,3,2,125,1),(8,302,3,3,300,1),(9,303,3,3,275,1),(10,401,4,1,95,1),(11,402,4,4,400,1);
 /*!40000 ALTER TABLE `Rooms` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -345,6 +343,7 @@ CREATE TABLE `StaffBookRoom` (
 
 LOCK TABLES `StaffBookRoom` WRITE;
 /*!40000 ALTER TABLE `StaffBookRoom` DISABLE KEYS */;
+INSERT INTO `StaffBookRoom` VALUES (1,5,1),(1,5,3),(1,6,2);
 /*!40000 ALTER TABLE `StaffBookRoom` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -364,7 +363,7 @@ CREATE TABLE `User` (
   PRIMARY KEY (`id`),
   KEY `address_id` (`address_id`),
   CONSTRAINT `user_ibfk_1` FOREIGN KEY (`address_id`) REFERENCES `Address` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -373,7 +372,7 @@ CREATE TABLE `User` (
 
 LOCK TABLES `User` WRITE;
 /*!40000 ALTER TABLE `User` DISABLE KEYS */;
-INSERT INTO `User` VALUES (1,'John','johnpass','john@gmail.com',1),(2,'Michael','michaelpass','mike@gmail.com',2),(3,'Michille','michillepass','michille@gmail.com',2),(4,'Taylor','taylorpass','taylor@gmail.com',3),(5,'rpotla','manoj1999','rammanojpotla1608@gmail.com',6),(6,'aditya','manoj1999','aditya@gmail.com',5);
+INSERT INTO `User` VALUES (1,'John11','johnpass','john@gmail.com',1),(2,'Michael','michaelpass','mike@gmail.com',2),(3,'Michille','michillepass','michille@gmail.com',2),(4,'Taylor','taylorpass','taylor@gmail.com',3),(5,'rpotla','manoj1999','rammanojpotla1608@gmail.com',8),(6,'sam','na','sam@gmail.com',5),(7,'shreya','manoj1999','shreya@gmail.com',9);
 /*!40000 ALTER TABLE `User` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -418,7 +417,7 @@ CREATE TABLE `UserClient` (
 
 LOCK TABLES `UserClient` WRITE;
 /*!40000 ALTER TABLE `UserClient` DISABLE KEYS */;
-INSERT INTO `UserClient` VALUES (5,'2022-11-09'),(6,'2022-12-06');
+INSERT INTO `UserClient` VALUES (5,'2022-11-27'),(6,'2022-11-27'),(7,'2022-11-29');
 /*!40000 ALTER TABLE `UserClient` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -439,16 +438,21 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` FUNCTION `bookOffRoom`(checkin_d date, checkout_d date, nof_days int, usermail varchar(100), amm float, pay_method varchar(30), username varchar(100), userid varchar(100)) RETURNS int
+CREATE DEFINER=`root`@`localhost` FUNCTION `bookOffRoom`(checkin_d date, checkout_d date, nof_days int, amm float, pay_method varchar(30), username varchar(100), mmail varchar(100), addd int, dob date, eemail varchar(100)) RETURNS int
     MODIFIES SQL DATA
     DETERMINISTIC
 begin
 declare temp int;
-declare userid int;
-select id into userid from User where email=usermail;
-INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, 0);
+declare user__id int default 0;
+declare staff__id int default 0;
+declare off_id int default 0;
+call createUser(username, mmail, "na", dob, addd);
+select id into user__id from User where email=mmail;
+select id into staff__id from User where email=eemail;
+INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled, user_id) values (checkin_d, checkout_d, nof_days, 0, user__id);
 set temp = LAST_INSERT_ID();
-INSERT INTO OfflineBooking (ofid, ofuser, ofuserid) values (temp, username, userid);
+INSERT INTO OfflineBooking (ofid) values (temp);
+INSERT INTO StaffBookRoom (staff_id, user_id, booking_id) values (staff__id, user__id, temp);
 INSERT INTO payment (amount, payment_method, booking_id) values (amm, pay_method, temp);
 return temp;
 END ;;
@@ -474,9 +478,9 @@ begin
 declare temp int;
 declare userid int;
 select id into userid from User where email=usermail;
-INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled) values (checkin_d, checkout_d, nof_days, 0);
+INSERT INTO Booking (checkin_date, checkout_date, no_of_days, cancelled, user_id) values (checkin_d, checkout_d, nof_days, 0, userid);
 set temp = LAST_INSERT_ID();
-INSERT INTO OnlineBooking (oid, user_id) values (temp, userid);
+INSERT INTO OnlineBooking (oid) values (temp);
 INSERT INTO payment (amount, payment_method, booking_id) values (amm, pay_method, temp);
 return temp;
 END ;;
@@ -548,14 +552,17 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `createUser`(IN username varchar(100), IN user_email varchar(100), IN user_pass varchar(200), IN ddob date, IN address int)
 BEGIN
-start transaction;
-if (user_pass is null) then
-	insert into User(name, email, address_id) values (username, user_email, address);
+declare temp int default 0;
+if (user_pass = "na") then
+    select count(*) into temp from User where email=user_email;
+    if temp = 0 then
+    	insert into User(name, user_password, email, address_id) values (username, user_pass, user_email, address);
+        insert into UserClient (id, dob) values (LAST_INSERT_ID(), ddob);
+    end if;
 else
 	insert into User(name, user_password, email, address_id) values (username, user_pass, user_email, address);
+    insert into UserClient (id, dob) values (LAST_INSERT_ID(), ddob);
 end if;
-insert into UserClient (id, dob) values (LAST_INSERT_ID(), ddob);
-COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -581,7 +588,7 @@ LEFT OUTER JOIN BookRooms br ON br.booking_id = b.id
 LEFT OUTER JOIN Rooms r ON r.room_id = br.room_id
 LEFT OUTER JOIN Hotel h ON r.hotel_id = h.id
 LEFT OUTER JOIN payment p ON p.booking_id = b.id 
-LEFT OUTER JOIN User u on u.id = ob.user_id; 
+LEFT OUTER JOIN User u on u.id = b.user_id; 
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -619,14 +626,14 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `searchUserBookings`(user_email varchar(100))
 BEGIN
-SELECT b.*, h.*, r.*, p.* FROM User u
-INNER JOIN UserClient uc ON uc.id = u.id
-INNER JOIN OnlineBooking ob ON ob.user_id = uc.id
-INNER JOIN Booking b ON b.id = ob.oid
-INNER JOIN BookRooms br ON br.booking_id = b.id
-INNER JOIN Rooms r ON r.room_id = br.room_id
-INNER JOIN Hotel h ON r.hotel_id = h.id
-INNER JOIN payment p ON p.booking_id = b.id 
+SELECT b.*, h.*, r.*, p.*, ob.*, offf.*, u.* FROM Booking b
+LEFT OUTER JOIN OnlineBooking ob ON ob.oid = b.id
+LEFT OUTER JOIN OfflineBooking offf ON offf.ofid = b.id
+LEFT OUTER JOIN BookRooms br ON br.booking_id = b.id
+LEFT OUTER JOIN Rooms r ON r.room_id = br.room_id
+LEFT OUTER JOIN Hotel h ON r.hotel_id = h.id
+LEFT OUTER JOIN payment p ON p.booking_id = b.id 
+LEFT OUTER JOIN User u on u.id = b.user_id
 WHERE u.email = user_email;
 END ;;
 DELIMITER ;
@@ -644,4 +651,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-12-09 10:38:25
+-- Dump completed on 2022-12-09 15:12:29

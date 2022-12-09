@@ -40,7 +40,11 @@ def register():
             add_id = createAddress(street, city, pincode)
         
         try:
-            createUser(username, password, email, dob, add_id)
+            dat = getUserDetails(email)
+            if len(dat) > 0 and dat[2] == "na":
+                updateUser(dat[0], username, password, email, dob, street, city, pincode)
+            else:
+                createUser(username, password, email, dob, add_id)
         except DatabaseError as e:
             print(str(e))
             return render_template("register.html", message=str(e).split(":")[1], color="red", username=username, email=email, dob=dob, city=city, pincode=pincode, street=street)
@@ -57,7 +61,7 @@ def login():
     else:
         f = request.form
         email, password = f.get("email"), f.get("psw")
-        check = checkUserExist(email, password)
+        check = checkUserExist(email, password) if len(password) >= 8 else False
         if check:
             session['username'] = check[0]
             session['email'] = email
@@ -89,7 +93,7 @@ def home():
             if i[2] < start_date.date() or end_date.date() < i[1]:
                 pass
             else:
-                tmp[i[6]] = True
+                tmp[i[8]] = True
         return render_template("home.html", user=sess, rooms=[i for i in rooms if i[0] not in tmp], start_date=start_date.strftime("%Y-%m-%d"), end_date=end_date.strftime("%Y-%m-%d"))
 
     return render_template("home.html", user=sess)
@@ -136,13 +140,10 @@ def logout():
 def check_available(start, end, rooms):
     bookings = getBookings()
     rooms_len = len(rooms)
-    print(rooms)
-    print(bookings)
     for i in bookings:
         if not (i[2] < start.date() or end.date() < i[1]):
-            print("Came in here...")
-            if i[6] in rooms:
-                rooms.remove(i[6])
+            if i[8] in rooms:
+                rooms.remove(i[8])
     return rooms_len == len(rooms)
 
 @app.route("/book", methods=['POST'])
@@ -152,20 +153,25 @@ def bookRoomView():
 
     # book the rooms
     d = request.json
-
     if session.get("type").lower() == "staff":
-        if d['user'] == "" or d['userid'] == "":
-            return {"message": "UserId or Username cannot be empty!", "error": 1}
+        if d['user'] == "":
+            return {"message": "Username cannot be empty!", "error": 1}
 
 
     rooms = [getRoomIDs(i)[0][0] for i in d['room']]
     if not check_available(datetime.strptime(d['start_date'], "%Y-%m-%d"), datetime.strptime(d['end_date'], "%Y-%m-%d"), rooms):
         return {"message": "Rooms are not available on selected dates!", "error": 1}
+        
     no_days = (datetime.strptime(d['end_date'], "%Y-%m-%d") - datetime.strptime(d['start_date'], "%Y-%m-%d")).days
 
     try:
         if session.get("type").lower() == "staff":
-            id = bookOfflineRoom(d['start_date'], d['end_date'], no_days, session.get("email"), d.get("cost").replace("$", ""), d['payment_type'], d['user'], d['userid'])
+            if datetime.now() < datetime.strptime(d['dob'], "%Y-%m-%d"):
+                return {"message": "DOB cannot be in future!", "error": 1}
+            add_id = searchAddress(d['street'], d['city'], d['pincode'])
+            if add_id == -1:
+                add_id = createAddress(d['street'], d['city'], d['pincode'])
+            id = bookOfflineRoom(d['start_date'], d['end_date'], no_days, d.get("cost").replace("$", ""), d['payment_type'], d['user'], d['email'], add_id, datetime.strptime(d['dob'], "%Y-%m-%d"))
         else:
             id = bookOnlineRoom(d['start_date'], d['end_date'], no_days, session.get("email"), d.get("cost").replace("$", ""), d['payment_type'])
     except DatabaseError as e:
@@ -191,40 +197,38 @@ def history():
             else:
                 operation = "future"
 
-            print(booking)
-
             if session['type'].lower() != "staff":
                 if booking[0] not in data:
                     data[booking[0]] = {"data": {
                         "start_date": datetime.strftime(booking[1], "%Y-%m-%d"),
                         "end_date": datetime.strftime(booking[2], "%Y-%m-%d"),
-                        "rooms": [[booking[8], booking[10]]],
-                        "cost": "$" + str(booking[14]),
-                        "payment_type": booking[15],
+                        "rooms": [[booking[9], booking[10]]],
+                        "cost": "$" + str(booking[15]),
+                        "payment_type": booking[16],
                         "days": booking[3],
                         "op": operation,
                         "cancelled": 0 if booking[4] == True else 1,
                         "id": booking[0]
                     }, "op": operation }
                 else:
-                    data[booking[0]]['data']['rooms'].append([booking[8], booking[10]])
+                    data[booking[0]]['data']['rooms'].append([booking[9], booking[10]])
             else:
                 if booking[0] not in data:
                     data[booking[0]] = {"data": {
                         "start_date": datetime.strftime(booking[1], "%Y-%m-%d"),
                         "end_date": datetime.strftime(booking[2], "%Y-%m-%d"),
-                        "rooms": [[booking[8], booking[10]]],
-                        "cost": "$" + str(booking[14]),
-                        "payment_type": booking[15],
+                        "rooms": [[booking[9], booking[10]]],
+                        "cost": "$" + str(booking[15]),
+                        "payment_type": booking[16],
                         "type": "offline" if booking[21] != None else "online",
-                        "user": booking[20] if booking[20] != None else booking[23],
+                        "user": booking[21],
                         "days": booking[3],
                         "op": operation,
                         "cancelled": 0 if booking[4] == True else 1,
                         "id": booking[0]
                     }, "op": operation }
                 else:
-                    data[booking[0]]['data']['rooms'].append([booking[8], booking[10]])
+                    data[booking[0]]['data']['rooms'].append([booking[9], booking[10]])
 
         if request.method == "GET":
             return render_template("history.html", data = data)
@@ -277,7 +281,7 @@ def updateBooking():
         if i[0] == d['id']:
             continue
         if not (i[2] < start.date() or end.date() < i[1]):
-            if i[8] in d['rooms']:
+            if i[9] in d['rooms']:
                 return {"message": "Rooms not available on specified dates!", "error": 1}
         
     cost = 0
@@ -324,7 +328,6 @@ def stats():
     while iter < end_date:
         out[iter.month] = 0
         iter += timedelta(days=30)
-    print(get_stats(start_date, end_date))
     for i in get_stats(start_date, end_date):
         out[i[1].month] += 1
     return render_template("stats.html", stats={"data": out}, disp=True, start=request.args['start_date'], end=request.args['end_date'])
