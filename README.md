@@ -38,8 +38,10 @@ python app.py (only if your virutalenv by default picks python3)
 
 - Visit http://127.0.0.1:3000/ to see the running instance of the app.
 
-## Usage
-
+## Structure
+- There are two types of users:
+    - Staff: Admins to the site who can perform offline bookings, view / update rooms, get stats etc.
+    - Users: clients who book rooms at the hotel.
 - You can login to the app with email `john@gmail.com` and password `johnpass`. John is of type Staff.
     - Staff can:
         - Book offline rooms
