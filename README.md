@@ -6,21 +6,27 @@ An App for the Hotel to help manage it's bookings.
 ## Setup
 
 - Download the provided zip file to local directory.
-- Download and Install MYSQL (version: 8.0.31) into the local system using [this][1]
+- Download and Install MYSQL (version: 8.0.31) into the local system using [this][1].
 - Extract the downloaded project zip. All the requirements of the project zip are present in requirements.txt file.
-- Download Python3 from [here][4].
+- Download Python3 from [here][4]. It on windows, add python path to the PATH variable to access it via terminal.
 - Create a new virtual environment using this [link][2]
 - Once installed, activate the virtual environment using the following command:
 ``` 
-source <venv-name>/bin/activate
+source <venv-path>/bin/activate (for linux/mac)
+call <venv-path>\Scripts\activate (for windowss)
 ```
-- Replace `<venv-name>` with the name provided at creation of virtual environment.
+- Replace `<venv-path>` with the name provided at creation of virtual environment.
 - Now install all the dependencies using the following command (from the root directory):
 ```
+source <path-to-virtualenv>/bin/activate (for mac/linux)
+call <path-to-virtualenv>\Scripts\activate (for windows)
+
+python -m pip (only if pip is not installed)
 pip install -r requirements.txt
 ```
 - Once all the dependencies are installed, Change file `<project-root>/globals.py` and configure the appropriate mysql host, username and password.
-- Now run the app using the following command from project root directory.
+- Now run the files `<project-root>/project_dump.sql` or `<project-root>/project.sql` to create the database and run pre-defined DDL, DML statements.
+- Finally, run the app using the following command from project root directory.
 ```
 cd <project-root>
 python3 app.py
@@ -30,7 +36,24 @@ or
 python app.py (only if your virutalenv by default picks python3)
 ```
 
+## Usage
 
+- You can login to the app with email `john@gmail.com` and password `johnpass`. John is of type Staff.
+    - Staff can:
+        - Book offline rooms
+        - View statistics of bookings
+        - Add / delete rooms from hotel
+        - View all the bookings.
+        - Update / delete any booking.
+        - Update his/her profile
+
+- Now, to book a room as a user. Register to the app providing name, email, address. Once registered, you can login with the same credentials. 
+    - User can:
+        - Book a room online.
+        - View his/her bookings.
+        - Update his/her profile
+        - Update his/her future booking
+        - Cancel his/her booking.
 
 
 ## Tech Stack:
