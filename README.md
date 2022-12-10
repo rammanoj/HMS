@@ -46,9 +46,16 @@ python app.py (only if your virutalenv by default picks python3)
 
 
 ## Lessons Learned
+#### Technical expertise gained
 - Flask Tempaltes
 - Javascript AJAX
 - A lot of knowledge on MYSQL functions, triggers, proceedures, error handling etc.
+
+#### Time management
+We understood how to manage time equally between different parts of the project. Since the backend included dealing with SQL
+and and querying the database from flask application. Though frontend was taking more time, we tried to dedicate more time to the backend rather than frontend as backend was more important in this project. 
+
+#### Alternative design
 
 
 ## Future Work:
